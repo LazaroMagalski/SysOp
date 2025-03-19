@@ -20,10 +20,12 @@
 //    Veja o main.  Ele instancia o Sistema com os elementos mencionados acima.
 //           em seguida solicita a execução de algum programa com  loadAndExec
 
+package T1;
+
 import java.util.*;
 
 public class Sistema {
-
+	
 	// -------------------------------------------------------------------------------------------------------
 	// --------------------- H A R D W A R E - definicoes de HW
 	// ----------------------------------------------
@@ -547,7 +549,7 @@ public class Sistema {
 
 	public void run() {
 
-		so.utils.loadAndExec(progs.retrieveProgram("fibonacciREAD"));//<========================================================================================
+		so.utils.loadAndExec(progs.retrieveProgram("sum"));//<========================================================================================
 
 		// so.utils.loadAndExec(progs.retrieveProgram("fatorial"));
 		// fibonacci10,
