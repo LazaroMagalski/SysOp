@@ -40,7 +40,7 @@ public class Sistema {
 			// retorna true se consegue alocar ou falso caso negativo
  			// cada posição i do vetor de saída “tabelaPaginas” informa em que frame a página i deve ser hospedada 
 			
-			int paginasNecessarias = (int) Math.ceil((double) nroPalavras / tamPag);
+			int paginasNecessarias = (int) Math.ceil((double) nroPalavras / tamPag); // A função Math.ceil(x) retorna o menor número inteiro maior ou igual a "x"
 			int paginasAlocadas = 0;
 			
 			for (int frame = 0; frame < frames; frame++) {
