@@ -1,5 +1,8 @@
-// ------------------- I N T E R R U P C O E S - rotinas de tratamento
-// ----------------------------------
+package SW;
+
+import HW.HW;
+import HW.CPU.Interrupts;
+
 public class InterruptHandling {
     private HW hw; // referencia ao hw se tiver que setar algo
 

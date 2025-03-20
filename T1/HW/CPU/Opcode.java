@@ -1,3 +1,5 @@
+package HW.CPU;
+
 public enum Opcode {
     DATA, ___,                      // se memoria nesta posicao tem um dado, usa DATA, se nao usada ee NULO ___
     JMP, JMPI, JMPIG, JMPIL, JMPIE, // desvios

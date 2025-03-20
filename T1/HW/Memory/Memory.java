@@ -1,3 +1,7 @@
+package HW.Memory;
+
+import HW.CPU.Opcode;
+
 public class Memory {
     public Word[] pos; // pos[i] é a posição i da memória. cada posição é uma palavra.
 
