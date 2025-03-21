@@ -1,6 +1,5 @@
-// -------------------------------------------------------------------------------------------------------
-// --------------------- M E M O R I A - definicoes de palavra de memoria,
-// memória ----------------------
+package SW;
+
 public class GM {
 	public int tamMem;
 	public int tamPag;
