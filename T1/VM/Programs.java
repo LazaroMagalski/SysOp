@@ -1,5 +1,4 @@
 package VM;
-
 import HW.CPU.Opcode;
 import HW.Memory.Word;
 
