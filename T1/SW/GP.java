@@ -11,18 +11,14 @@ public class GP {
 
     public class PCB{
         public int id;
-        public int[] particoes;
+        public int[] tabPag;
         public int pc;
-        public int base;
-        public int limite;
 
         public PCB(){
             id = pcbId;
             pcbId++;
-            particoes = new int[0];
+            tabPag = new int[0];
             pc = 0;
-            base = 0;
-            limite = 0;
         }
 
     }
@@ -30,7 +26,6 @@ public class GP {
     private int pcbId; 
     private GM gm;
     private CPU cpu;
-    public HashMap<Integer, PCB> listaPCB;
     
     public GP(CPU cpu, GM gm){
         this.cpu = cpu;
@@ -39,18 +34,19 @@ public class GP {
 
     public boolean criaProcesso(Program program) {
 
-        //verifica tamanho do programa
         int[] alocacao = new int[program.image.length];
-        if(program.image.length > gm.tamMem) return false;
-        if(gm.aloca(program.image.length, alocacao)==false){
+        System.out.println("program.length = "+program.image.length + " gm.tamMem = "+gm.tamMem);
+        if(program.image.length > gm.tamMem) return false;//verifica tam do programa
+        if(gm.aloca(program.image.length, alocacao)==false){//pede alocacao
            System.out.println("Erro: Memória insuficiente para alocar o programa");
            return false;
         }
-        PCB novoPCB = new PCB();
-        novoPCB.particoes = alocacao;
-        novoPCB.base = gm.traduz(0, alocacao);
-        novoPCB.limite = gm.traduz(program.image.length, alocacao);
-        listaPCB.put(novoPCB.id, novoPCB);
+        PCB novoPCB = new PCB();//cria pcb
+        novoPCB.tabPag = alocacao;
+        for(int i = 0; i < program.image.length; i++){
+            gm.memory.pos[novoPCB.tabPag[i]] = program.image[i];
+        }
+        
         return true;
     }
     
