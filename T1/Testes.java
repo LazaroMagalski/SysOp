@@ -40,7 +40,6 @@ public class Testes {
         GP gp = new GP(cpu, gm);
         Programs programs = new Programs();
         Program program = programs.progs[0];
-        System.out.println(program.name);
-        System.out.println(gp.criaProcesso(program));
+        System.out.println("name: "+program.name+" "+gp.criaProcesso(program));
     }
 }

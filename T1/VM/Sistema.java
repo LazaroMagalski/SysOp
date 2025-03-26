@@ -1,5 +1,7 @@
 package VM;
 
+import java.util.Scanner;
+
 import HW.HW;
 import SW.SO;
 
@@ -14,28 +16,58 @@ public class Sistema {
 		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
 		progs = new Programs();
 	}
-
-	public void run() {
-
-		so.utils.loadAndExec(progs.retrieveProgram("sum"));//<========================================================================================
-
-		// so.utils.loadAndExec(progs.retrieveProgram("fatorial"));
-		// fibonacci10,
-		// fibonacci10v2,
-		// progMinimo,
-		// fatorialWRITE, // saida
-		// fibonacciREAD, // entrada
-		// PB
-		// PC, // bubble sort
+	public void menu(){
+		Scanner sc = new Scanner(System.in);
+		while(true){
+			System.out.println("Digite um comando:");
+			String command = sc.nextLine();
+			switch (command) {
+				case "new":
+					System.out.println("Digite o nome do programa: ");
+					String name = sc.nextLine();
+					break;
+				case "rm":
+					System.out.println("Digite o id do programa: ");
+					String rm_id = sc.nextLine();
+					break;
+				case "ps":
+					break;
+				case "dump"://+id
+					System.out.println("Digite o id do programa: ");
+					String dump_id = sc.nextLine();
+					break;
+				case "dumpM":
+					System.out.println("Digite o inicio: ");
+					String dumpM_start = sc.nextLine();
+					System.out.println("Digite o final: ");
+					String dumpM_end = sc.nextLine();
+					break;
+				case "exec":
+					System.out.println("Digite o id do programa: ");
+					String exec_id = sc.nextLine();
+					break;
+				case "traceOn":
+					break;
+				case "traceOff":
+					break;
+				case "exit":
+					sc.close();
+					System.exit(0);
+					break;
+				default:
+					break;
+			}
+		}
 	}
-	// ------------------- S I S T E M A - fim
-	// --------------------------------------------------------------
-	// -------------------------------------------------------------------------------------------------------
 
-	// -------------------------------------------------------------------------------------------------------
-	// ------------------- instancia e testa sistema
+	public void run() {//remover
+
+		so.utils.loadAndExec(progs.retrieveProgram("sum"));
+	}
+	
 	public static void main(String args[]) {
 		Sistema s = new Sistema(1024);
-		s.run();
+		s.menu();
+		//s.run();
 	}
 }

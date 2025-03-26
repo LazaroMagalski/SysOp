@@ -26,6 +26,7 @@ public class GP {
     private int pcbId; 
     private GM gm;
     private CPU cpu;
+    private HashMap<Integer, PCB> readyList;
     
     public GP(CPU cpu, GM gm){
         this.cpu = cpu;
@@ -42,12 +43,26 @@ public class GP {
            return false;
         }
         PCB novoPCB = new PCB();//cria pcb
+        //Seta partição usada no pcb
         novoPCB.tabPag = alocacao;
+        //carrega programa na memória
         for(int i = 0; i < program.image.length; i++){
             gm.memory.pos[novoPCB.tabPag[i]] = program.image[i];
         }
-        
+        //Seta demais parâmetros do PCB (id, pc=0, etc)
+        //Coloca PCB na fila de prontos
+        readyList.put(novoPCB.id, novoPCB);
         return true;
+    }
+
+    public void desalocaProcesso(int id){
+        PCB pcb = readyList.get(id);
+        if(pcb == null){
+            System.out.println("Processo inexistente");
+            return; 
+        }
+        gm.desaloca(pcb.tabPag);
+        readyList.remove(id);
     }
     
 }
