@@ -31,12 +31,14 @@ public class GP {
     public GP(CPU cpu, GM gm){
         this.cpu = cpu;
         this.gm = gm;
+        this.readyList = new HashMap<>();
     }
+
 
     public boolean criaProcesso(Program program) {
 
         int[] alocacao = new int[program.image.length];
-        System.out.println("program.length = "+program.image.length + " gm.tamMem = "+gm.tamMem);
+        //System.out.println("program.length = "+program.image.length + " gm.tamMem = "+gm.tamMem);
         if(program.image.length > gm.tamMem) return false;//verifica tam do programa
         if(gm.aloca(program.image.length, alocacao)==false){//pede alocacao
            System.out.println("Erro: Memória insuficiente para alocar o programa");
@@ -64,5 +66,16 @@ public class GP {
         gm.desaloca(pcb.tabPag);
         readyList.remove(id);
     }
+
+
+    public int getPcbId() {
+        return pcbId;
+    }
+
+
+    public void setPcbId(int pcbId) {
+        this.pcbId = pcbId;
+    }
+
     
 }

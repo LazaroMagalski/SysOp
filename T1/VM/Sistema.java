@@ -3,18 +3,24 @@ package VM;
 import java.util.Scanner;
 
 import HW.HW;
+import SW.GM;
+import SW.GP;
 import SW.SO;
 
 public class Sistema {
     public HW hw;
 	public SO so;
 	public Programs progs;
+	public GM gm;
+	public GP gp;
 
 	public Sistema(int tamMem) {
 		hw = new HW(tamMem);           // memoria do HW tem tamMem palavras
 		so = new SO(hw);
 		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
 		progs = new Programs();
+		gm =  new GM(hw.mem, tamMem);
+		gp = new GP(hw.cpu, gm);
 	}
 	public void menu(){
 		Scanner sc = new Scanner(System.in);
@@ -25,6 +31,14 @@ public class Sistema {
 				case "new":
 					System.out.println("Digite o nome do programa: ");
 					String name = sc.nextLine();
+					switch (name) {
+						case "sum":
+							gp.criaProcesso(progs.retrieveProg("sum"));
+							break;
+						default:
+							System.out.println("Nome invalido");
+							break;
+					}
 					break;
 				case "rm":
 					System.out.println("Digite o id do programa: ");

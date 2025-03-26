@@ -12,6 +12,15 @@ public class Programs {
         return null;
     }
 
+    public Program retrieveProg(String pname){
+        for (Program p : progs) {
+                if (p != null & p.name == pname)
+                    return p;
+            }
+            return null;
+        }
+    
+
     public Program[] progs = {
         new Program("sum",
             new Word[]{
