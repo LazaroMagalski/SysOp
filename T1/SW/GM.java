@@ -1,5 +1,6 @@
 package SW;
 
+import HW.CPU.Opcode;
 import HW.Memory.Memory;
 
 public class GM {
@@ -30,6 +31,7 @@ public class GM {
 				tabelaPaginas[paginasAlocadas] = frame;
 				paginasAlocadas++;
 				memory.pos[frame].p = 0;
+				memory.pos[frame].opc = Opcode.DATA;
 			}
 		}
 
