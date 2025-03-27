@@ -57,5 +57,23 @@ public class GM {
 		return;
 	}
 
+	public int tradutor(int enderecoLogico, int[] tabelaPaginas){
+		int numPagina = enderecoLogico / tamPag; // Pega o número da página virtual
+		int offset = enderecoLogico % tamPag; // Descobre o deslocamento dentro da página
+
+		if (enderecoLogico < 0 || tabelaPaginas == null) {	// Verifica a validade dos argumentos fornecidos
+			System.out.println("Endereço ou tabela inválidos");
+		}
+
+		if (numPagina >= tabelaPaginas.length || tabelaPaginas[numPagina] == -1) {
+			System.out.println("Página "+ 1 + " não existe/não foi alocada na memória RAM");
+			return -1;
+		}
+
+		int numFrame = tabelaPaginas[numPagina]; // Salva o frame físico correspondente
+		int enderecoFisico = (numFrame * tamPag) + offset; // Descobre o endereco físico
+
+		return enderecoFisico;
+	}
 
 }
