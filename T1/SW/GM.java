@@ -24,14 +24,12 @@ public class GM {
 																				// igual a "x"
 		int paginasAlocadas = 0;
 		tabelaPaginas = new int[paginasNecessarias];
-		for (int i = 0; i < tabelaPaginas.length; i++) {
-			tabelaPaginas[i] = -1;
-		}
 		for (int frame = 0; frame < frames; frame++) {
 			//System.out.println(paginasAlocadas + " " + paginasNecessarias + " " + tabelaPaginas[frame]);
-			if (paginasAlocadas < paginasNecessarias && tabelaPaginas[frame] == -1) {
+			if (paginasAlocadas < paginasNecessarias && memory.pos[frame].p == -1) {
 				tabelaPaginas[paginasAlocadas] = frame;
 				paginasAlocadas++;
+				memory.pos[frame].p = 0;
 			}
 		}
 
