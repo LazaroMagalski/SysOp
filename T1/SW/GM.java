@@ -2,6 +2,7 @@ package SW;
 
 import HW.CPU.Opcode;
 import HW.Memory.Memory;
+import HW.Memory.Word;
 
 public class GM {
 	public Memory memory;
@@ -57,6 +58,19 @@ public class GM {
 			tabelaPaginas[i] = -1;
 		}
 		return;
+	}
+
+	public void carregarPrograma (Word[] programa, int[] tabelaPaginas) {
+		// Carrega o programa na memória
+		for (int i = 0; i < programa.length;i++) {
+
+			int posicaoTransladada = tradutor(i, tabelaPaginas);
+			memory.pos[posicaoTransladada].opc = programa[i].opc;
+			memory.pos[posicaoTransladada].p = programa[i].p;
+			memory.pos[posicaoTransladada].ra = programa[i].ra;
+			memory.pos[posicaoTransladada].rb = programa[i].rb;
+
+		}
 	}
 
 	public int tradutor(int enderecoLogico, int[] tabelaPaginas){
