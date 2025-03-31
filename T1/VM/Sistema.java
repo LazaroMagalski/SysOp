@@ -35,6 +35,9 @@ public class Sistema {
 						case "sum":
 							gp.criaProcesso(progs.retrieveProg("sum"));
 							break;
+						case "fatorial":
+							gp.criaProcesso(progs.retrieveProg("fatorial"));
+							break;
 						default:
 							System.out.println("Nome invalido");
 							break;
@@ -42,23 +45,28 @@ public class Sistema {
 					break;
 				case "rm":
 					System.out.println("Digite o id do programa: ");
-					String rm_id = sc.nextLine();
+					int rm_id = sc.nextInt();
+					if(gp.desalocaProcesso(rm_id) == true)
+						System.out.println("Processo Removido");
 					break;
 				case "ps":
+						System.out.println(gp.readyList.keySet().toString());
 					break;
-				case "dump"://+id
+				case "dump":
 					System.out.println("Digite o id do programa: ");
-					String dump_id = sc.nextLine();
+					int dump_id = sc.nextInt();
+						gp.dump(dump_id);
 					break;
 				case "dumpM":
 					System.out.println("Digite o inicio: ");
-					String dumpM_start = sc.nextLine();
+					int dumpM_start = sc.nextInt();
 					System.out.println("Digite o final: ");
-					String dumpM_end = sc.nextLine();
+					int dumpM_end = sc.nextInt();
 					break;
 				case "exec":
 					System.out.println("Digite o id do programa: ");
-					String exec_id = sc.nextLine();
+					int exec_id = sc.nextInt();
+					gp.executarProcesso(exec_id);
 					break;
 				case "traceOn":
 					break;

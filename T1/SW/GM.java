@@ -38,9 +38,6 @@ public class GM {
 
 		if (paginasAlocadas == paginasNecessarias) {
 			// todas as paginas foram alocadas
-			for(int i = 0; i < paginasAlocadas; i++) {
-				System.out.println("tabelaPaginas["+i+"] = "+tabelaPaginas[i]);
-			}
 			return true;
 		} else {
 			// libera os espaços que já foram alocados
