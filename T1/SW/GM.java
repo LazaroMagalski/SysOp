@@ -30,11 +30,18 @@ public class GM {
 		tabelaPaginas = new int[paginasNecessarias];
 		for (int frame = 0; frame < frames; frame++) {
 			//System.out.println(paginasAlocadas + " " + paginasNecessarias + " " + tabelaPaginas[frame]);
-			if (paginasAlocadas < paginasNecessarias && memory.pos[frame].p == -1) {
+			
+			int positionFrame = frame * tamPag;
+			
+			if (paginasAlocadas < paginasNecessarias && memory.pos[positionFrame].p == -1) {
 				tabelaPaginas[paginasAlocadas] = frame;
+				
+				for (int index = 0; index < tamPag; index++) {
+					memory.pos[positionFrame + index].p = 0;
+					memory.pos[positionFrame + index].opc = Opcode.DATA;
+				}
+
 				paginasAlocadas++;
-				memory.pos[frame].p = 0;
-				memory.pos[frame].opc = Opcode.DATA;
 			}
 		}
 

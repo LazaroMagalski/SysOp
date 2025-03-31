@@ -39,7 +39,7 @@ public class GP {
     public GP(CPU cpu, GM gm){
         this.memory = new Memory(1024);
         this.cpu = cpu;
-        this.gm = new GM(memory, 60);
+        this.gm = new GM(memory, 10);
         this.readyList = new HashMap<>();
         this.pcbList = new HashMap<>();
         this.procExec = 0;
@@ -59,7 +59,9 @@ public class GP {
         //Seta partição usada no pcb
         novoPCB.bottom = gm.tradutor(0, alocacao);
         novoPCB.top = gm.tradutor(program.image.length, alocacao);
-        novoPCB.tabPag = alocacao;//<- 0
+
+        // TODO: REVISAR   [PRECISAMOS SALVAR TABPAG, NO PCB OU NA MEMORIA???]             novoPCB.tabPag = alocacao;//<- 0
+
         //carrega programa na memória
         //for(int i = 0; i < program.image.length; i++){
           //  gm.memory.pos[novoPCB.tabPag[i]] = program.image[i];

@@ -38,6 +38,12 @@ public class Sistema {
 						case "fatorial":
 							gp.criaProcesso(progs.retrieveProg("fatorial"));
 							break;
+
+						case "teste":
+							gp.criaProcesso(progs.retrieveProg("sum"));
+							gp.criaProcesso(progs.retrieveProg("fatorial"));
+							break;
+							
 						default:
 							System.out.println("Nome invalido");
 							break;
