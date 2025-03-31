@@ -1,5 +1,5 @@
 package HW.CPU;
-
+import  HW.CPU.*;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import SW.InterruptHandling;
