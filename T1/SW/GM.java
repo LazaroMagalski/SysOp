@@ -3,7 +3,9 @@ package SW;
 import HW.CPU.Opcode;
 import HW.Memory.Memory;
 import HW.Memory.Word;
-
+// -------------------------------------------------------------------------------------------------------
+// --------------------- M E M O R I A - definicoes de palavra de memoria,
+// memória ----------------------
 public class GM {
 	public Memory memory;
 	public int tamMem;
