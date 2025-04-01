@@ -14,4 +14,13 @@ public class Word {    // cada posicao da memoria tem uma instrucao (ou um dado)
         rb = _rb;
         p  = _p;
     }
+
+    @Override
+    public String toString() {
+        if (opc == Opcode.DATA) {
+            return "DATA " + p;
+        } else {
+            return opc.name() + ' ' + ra + ' ' + rb;
+        }
+    }
 }

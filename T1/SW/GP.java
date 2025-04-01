@@ -98,7 +98,7 @@ public class GP {
         }
         procExec = id_processo;
 
-        cpu.setContext(id_processo);
+        cpu.setContext(pcb.pc);
         cpu.run();
 
         readyList.put(id_processo, pcb);
@@ -112,11 +112,14 @@ public class GP {
             System.out.println("Processo invalido");
             return;
        }
+       System.out.println();
        System.out.println("PCB ID: "+pcb.id);
        System.out.println("PCB PC: "+pcb.pc);
        System.out.println("TabPag");
        for(int i=0; i < pcb.tabPag.length; i++){
-            
+            for (int j=0; j < gm.tamPag; j++) {
+                System.out.println(gm.memory.pos[gm.tradutor((i*gm.tamPag)+j, pcb.tabPag)]);
+            }
        }
     }
 
