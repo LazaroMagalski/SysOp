@@ -14,16 +14,12 @@ public class GP {
         public int id;
         public int[] tabPag;
         public int pc;
-        public int top;
-        public int bottom;
 
         public PCB(){
             id = pcbId;
             pcbId++;
             tabPag = new int[0];
             pc = 0;
-            top = 0;
-            bottom = 0;
         }
 
     }
@@ -48,19 +44,16 @@ public class GP {
 
     public boolean criaProcesso(Program program) {
 
-        int[] alocacao = new int[program.image.length];
+        int[] alocacao = gm.aloca(program.image.length);
         //System.out.println("program.length = "+program.image.length + " gm.tamMem = "+gm.tamMem);
         if(program.image.length > gm.tamMem) return false;//verifica tam do programa
-        if(gm.aloca(program.image.length, alocacao)==false){//pede alocacao
+        if(alocacao == null){//pede alocacao
            System.out.println("Erro: Memória insuficiente para alocar o programa");
            return false;
         }
         PCB novoPCB = new PCB();//cria pcb
         //Seta partição usada no pcb
-        novoPCB.bottom = gm.tradutor(0, alocacao);
-        novoPCB.top = gm.tradutor(program.image.length, alocacao);
-
-        // TODO: REVISAR   [PRECISAMOS SALVAR TABPAG, NO PCB OU NA MEMORIA???]             novoPCB.tabPag = alocacao;//<- 0
+        novoPCB.tabPag = alocacao;//<- 0
 
         //carrega programa na memória
         //for(int i = 0; i < program.image.length; i++){
@@ -114,15 +107,13 @@ public class GP {
         return pcbId;
     }
     public void dump(int id){
-       PCB pcb = readyList.get(id);
+       PCB pcb = pcbList.get(id);
        if(pcb == null){
             System.out.println("Processo invalido");
             return;
        }
        System.out.println("PCB ID: "+pcb.id);
        System.out.println("PCB PC: "+pcb.pc);
-       System.out.println("PCB Start: "+pcb.bottom);
-       System.out.println("PCB End: "+pcb.top);
        System.out.println("TabPag");
        for(int i=0; i < pcb.tabPag.length; i++){
             

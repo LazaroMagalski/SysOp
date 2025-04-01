@@ -19,7 +19,7 @@ public class GM {
 		this.frames = tamMem / tamPag;
 	}
 
-	public Boolean aloca(int nroPalavras, int[] tabelaPaginas) {
+	public int[] aloca(int nroPalavras) {
 		// retorna true se consegue alocar ou falso caso negativo
 		// cada posição i do vetor de saída “tabelaPaginas” informa em que frame a
 		// página i deve ser hospedada
@@ -27,7 +27,7 @@ public class GM {
 													// menor número inteiro maior ou
 																				// igual a "x"
 		int paginasAlocadas = 0;
-		tabelaPaginas = new int[paginasNecessarias];
+		int[] tabelaPaginas = new int[paginasNecessarias];
 		for (int frame = 0; frame < frames; frame++) {
 			//System.out.println(paginasAlocadas + " " + paginasNecessarias + " " + tabelaPaginas[frame]);
 			
@@ -47,13 +47,13 @@ public class GM {
 
 		if (paginasAlocadas == paginasNecessarias) {
 			// todas as paginas foram alocadas
-			return true;
+			return tabelaPaginas;
 		} else {
 			// libera os espaços que já foram alocados
-			for (int i = 0; i < paginasAlocadas; i++) {
-				tabelaPaginas[i] = -1;
-			}
-			return false;
+			// for (int i = 0; i < paginasAlocadas; i++) {
+			// 	tabelaPaginas[i] = -1;
+			// }
+			return null;
 		}
 	}
 

@@ -61,7 +61,7 @@ public class Sistema {
 				case "dump":
 					System.out.println("Digite o id do programa: ");
 					int dump_id = sc.nextInt();
-						gp.dump(dump_id);
+					gp.dump(dump_id);
 					break;
 				case "dumpM":
 					System.out.println("Digite o inicio: ");
