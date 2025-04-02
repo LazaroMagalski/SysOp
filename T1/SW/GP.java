@@ -122,6 +122,12 @@ public class GP {
             }
        }
     }
+    public void dumpM(int dumpM_start,int dumpM_end){
+        int dumpSize = dumpM_end - dumpM_start;
+        for(int i=0; i < dumpSize; i++){
+            System.out.println(gm.memory.pos[dumpM_start+i]);
+        }
+    }
 
     public void setPcbId(int pcbId) {
         this.pcbId = pcbId;

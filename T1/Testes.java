@@ -23,7 +23,7 @@ public class Testes {
         System.out.println("frames: "+gm.frames);
         System.out.println("tamPag: "+gm.tamPag);
        // System.out.println(Arrays.toString(paginas));
-        gm.aloca(100, paginas);
+        gm.aloca(100);
         System.out.println(Arrays.toString(paginas));
        // gm.desaloca(paginas);
        // System.out.println(Arrays.toString(paginas));

@@ -68,6 +68,7 @@ public class Sistema {
 					int dumpM_start = sc.nextInt();
 					System.out.println("Digite o final: ");
 					int dumpM_end = sc.nextInt();
+					gp.dumpM(dumpM_start, dumpM_end);
 					break;
 				case "exec":
 					System.out.println("Digite o id do programa: ");
