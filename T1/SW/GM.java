@@ -61,7 +61,9 @@ public class GM {
 		// libera os frames alocados
 
 		for (int i = 0; i < tabelaPaginas.length; i++) {
-			tabelaPaginas[i] = -1;
+			for(int j =0; j < tamPag; j++){
+				memory.pos[i*tamPag+j].p = -1;
+			}
 		}
 		return;
 	}

@@ -56,7 +56,7 @@ public class Sistema {
 						System.out.println("Processo Removido");
 					break;
 				case "ps":
-						System.out.println(gp.readyList.keySet().toString());
+						System.out.println(gp.pcbList.keySet().toString());
 					break;
 				case "dump":
 					System.out.println("Digite o id do programa: ");
