@@ -2,6 +2,7 @@ package SW;
 
 import java.util.HashMap;
 
+import HW.HW;
 import HW.CPU.CPU;
 import HW.Memory.Memory;
 import VM.Program;
@@ -32,10 +33,9 @@ public class GP {
     public int procExec;
     public Memory memory;
     
-    public GP(CPU cpu, GM gm){
-        this.memory = new Memory(1024);
-        this.cpu = cpu;
-        this.gm = new GM(memory, 10);
+    public GP(HW hw, GM gm){
+        this.cpu = hw.cpu;
+        this.gm = new GM(hw.mem, 10);
         this.readyList = new HashMap<>();
         this.pcbList = new HashMap<>();
         this.procExec = 0;
@@ -92,12 +92,11 @@ public class GP {
             System.out.println("Processo ocupado");
             return;
         }
-        if(procExec == id_processo){
-            System.out.println("Processo em execução");
-            return;
-        }
+       // if(procExec == id_processo){
+         //   System.out.println("Processo em execução");
+           // return;
+        //}
         procExec = id_processo;
-
         cpu.setContext(pcb.pc);
         cpu.run();
 
