@@ -87,7 +87,7 @@ public class CPU {
                 ir = m[pc];  // <<<<<<<<<<<< AQUI faz FETCH - busca posicao da memoria apontada por pc, guarda em ir
                              // resto é dump de debug
                 if (debug) {
-                    System.out.print("                                              regs: ");
+                    System.out.print("                                             regs: ");
                     for (int i = 0; i < 10; i++) {
                         System.out.print(" r[" + i + "]:" + reg[i]);
                     }
