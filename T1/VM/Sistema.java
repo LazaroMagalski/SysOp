@@ -76,8 +76,14 @@ public class Sistema {
 					gp.executarProcesso(exec_id);
 					break;
 				case "traceOn":
+					hw.cpu.setDebug(true);
 					break;
 				case "traceOff":
+					hw.cpu.setDebug(false);
+					break;
+				case "execAll":
+					System.out.println();
+					//gp.executarTodosProcessos();
 					break;
 				case "exit":
 					sc.close();
