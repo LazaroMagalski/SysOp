@@ -39,6 +39,14 @@ public class CPU {
         debug = _debug;            // se true, print da instrucao em execucao
 
     }
+    
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     public void setAddressOfHandlers(InterruptHandling _ih, SysCallHandling _sysCall) {
         ih = _ih;                  // aponta para rotinas de tratamento de int
@@ -262,7 +270,7 @@ public class CPU {
                         break;
 
                     case STOP: // por enquanto, para execucao
-                        sysCall.stop();
+                        sysCall.stop(debug);
                         cpuStop = true;
                         break;
 
