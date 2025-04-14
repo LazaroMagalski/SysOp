@@ -83,7 +83,7 @@ public class Sistema {
 					break;
 				case "execAll":
 					System.out.println();
-					//gp.executarTodosProcessos();
+					gp.executarTodosProcessos();
 					break;
 				case "exit":
 					sc.close();

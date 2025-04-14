@@ -9,13 +9,13 @@ import HW.Memory.Word;
 public class GM {
 	public Memory memory;
 	public int tamMem;
-	public int tamPag;
+	public static int tamPag;
 	public int frames;
 
-	public GM(Memory memory, int tamPag) {
+	public GM(Memory memory, int _tamPag) {
 		this.memory = memory;
 		this.tamMem = memory.pos.length;
-		this.tamPag = tamPag;
+		tamPag = _tamPag;
 		this.frames = tamMem / tamPag;
 	}
 
@@ -81,7 +81,7 @@ public class GM {
 		}
 	}
 
-	public int tradutor(int enderecoLogico, int[] tabelaPaginas){
+	public static int tradutor(int enderecoLogico, int[] tabelaPaginas){
 		int numPagina = enderecoLogico / tamPag; // Pega o número da página virtual
 		int offset = enderecoLogico % tamPag; // Descobre o deslocamento dentro da página
 

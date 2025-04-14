@@ -15,12 +15,16 @@ public class Scheduler {
     }
 
     public void schedule() {
-        PCB chosenPCB;
-        if (i >= gp.pcbList.size()+gp.readyList.size()) {
+        if (i >= gp.pcbList.size()) {
             i = 0;
-            chosenPCB = gp.readyList.get(i++);
-        } else {
-            chosenPCB = gp.readyList.get(i++);
         }
+        gp.pcbList.get(i).pc = hw.cpu.pc;
+        PCB chosenPCB = gp.pcbList.get(i++);
+        if (chosenPCB.ready) {
+            hw.cpu.setContext(chosenPCB.pc);
+            hw.cpu.run(2);
+            chosenPCB.ready = false;
+        }
+        System.out.println(chosenPCB.id);
     }
 }

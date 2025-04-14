@@ -15,12 +15,14 @@ public class GP {
         public int id;
         public int[] tabPag;
         public int pc;
+        public boolean ready;
 
         public PCB(){
             id = pcbId;
             pcbId++;
             tabPag = new int[0];
             pc = 0;
+            ready = true;
         }
 
     }
@@ -28,19 +30,18 @@ public class GP {
     private int pcbId; 
     private GM gm;
     private CPU cpu;
-    public HashMap<Integer, PCB> readyList;
     public HashMap<Integer, PCB> pcbList;
     public int procExec;
     public Memory memory;
+    private Scheduler scheduler;
     
     public GP(HW hw, GM gm){
         this.cpu = hw.cpu;
         this.gm = new GM(hw.mem, 10);
-        this.readyList = new HashMap<>();
         this.pcbList = new HashMap<>();
         this.procExec = 0;
+        this.scheduler = new Scheduler(this, hw);
     }
-
 
     public boolean criaProcesso(Program program) {
 
@@ -64,7 +65,6 @@ public class GP {
         //Seta demais parâmetros do PCB (id, pc=0, etc)
         //Coloca PCB na fila de prontos
         pcbList.put(novoPCB.id, novoPCB);
-        readyList.put(novoPCB.id, novoPCB);
         return true;
     }
 
@@ -75,7 +75,6 @@ public class GP {
             return false; 
         }
         gm.desaloca(pcb.tabPag);
-        readyList.remove(id);
         pcbList.remove(id);
         return true;
     }
@@ -87,21 +86,22 @@ public class GP {
             System.out.println("Processo não existe");
             return;
         }
-        pcb = readyList.remove(id_processo);
-        if(pcb == null){
-            System.out.println("Processo ocupado");
-            return;
-        }
        // if(procExec == id_processo){
          //   System.out.println("Processo em execução");
            // return;
         //}
         procExec = id_processo;
         cpu.setContext(pcb.pc);
-        cpu.run();
+        cpu.run(-1);
 
-        readyList.put(id_processo, pcb);
     }
+
+    public void executarTodosProcessos() {
+       while (!pcbList.isEmpty()) {
+            scheduler.schedule();
+       }
+    }
+
     public int getPcbId() {
         return pcbId;
     }
