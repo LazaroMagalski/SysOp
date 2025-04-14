@@ -270,7 +270,7 @@ public class CPU {
                         break;
 
                     case STOP: // por enquanto, para execucao
-                        sysCall.stop();
+                        sysCall.stop(debug);
                         cpuStop = true;
                         break;
 
