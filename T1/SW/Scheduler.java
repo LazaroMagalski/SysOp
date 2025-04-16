@@ -18,13 +18,14 @@ public class Scheduler {
         if (i >= gp.pcbList.size()) {
             i = 0;
         }
-        gp.pcbList.get(i).pc = hw.cpu.pc;
-        PCB chosenPCB = gp.pcbList.get(i++);
+        PCB chosenPCB = gp.pcbList.get(i);
         if (chosenPCB.ready) {
             hw.cpu.setContext(chosenPCB.pc);
+            hw.cpu.updateMMU(chosenPCB.tabPag);
             hw.cpu.run(2);
-            chosenPCB.ready = false;
         }
+        gp.pcbList.get(i).pc = hw.cpu.pc;
+        i++;
         System.out.println(chosenPCB.id);
     }
 }
