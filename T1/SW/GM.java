@@ -1,9 +1,7 @@
 package SW;
 
-import java.util.ArrayList;
 import java.util.Stack;
 
-import HW.CPU.Opcode;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 // -------------------------------------------------------------------------------------------------------
