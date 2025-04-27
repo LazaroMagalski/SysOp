@@ -97,7 +97,7 @@ public class CPU {
 
             // --------------------------------------------------------------------------------------------------
             // FASE DE FETCH
-            if (legal(pc)) { // pc valido
+            if (legal(GM.tradutor(pc, tabPag))) { // pc valido
                 ir = m.pos[GM.tradutor(pc, tabPag)];  // <<<<<<<<<<<< AQUI faz FETCH - busca posicao da memoria apontada por pc, guarda em ir
                              // resto é dump de debug
                 if (debug) {
@@ -124,20 +124,20 @@ public class CPU {
                         break;
                     case LDD: // Rd <- [A]
                         if (legal(ir.p)) {
-                            reg[ir.ra] = m[ir.p].p;
+                            reg[ir.ra] = m.pos[GM.tradutor(ir.p, tabPag)].p;
                             pc++;
                         }
                         break;
                     case LDX: // RD <- [RS] // NOVA
                         if (legal(reg[ir.rb])) {
-                            reg[ir.ra] = m[reg[ir.rb]].p;
+                            reg[ir.ra] = m.pos[GM.tradutor(reg[ir.rb], tabPag)].p;
                             pc++;
                         }
                         break;
                     case STD: // [A] ← Rs
                         if (legal(ir.p)) {
-                            m[ir.p].opc = Opcode.DATA;
-                            m[ir.p].p = reg[ir.ra];
+                            m.pos[GM.tradutor(ir.p, tabPag)].opc = Opcode.DATA;
+                            m.pos[GM.tradutor(ir.p, tabPag)].p = reg[ir.ra];
                             pc++;
                             if (debug) 
                                 {   System.out.print("                                  ");   
@@ -147,8 +147,8 @@ public class CPU {
                         break;
                     case STX: // [Rd] ←Rs
                         if (legal(reg[ir.ra])) {
-                            m[reg[ir.ra]].opc = Opcode.DATA;
-                            m[reg[ir.ra]].p = reg[ir.rb];
+                            m.pos[GM.tradutor(reg[ir.ra], tabPag)].opc = Opcode.DATA;
+                            m.pos[GM.tradutor(reg[ir.ra], tabPag)].p = reg[ir.rb];
                             pc++;
                         }
                         ;
@@ -189,7 +189,7 @@ public class CPU {
                         pc = ir.p;
                         break;
                     case JMPIM: // PC <- [A]
-                              pc = m[ir.p].p;
+                              pc = m.pos[ir.p].p;
                         break;
                     case JMPIG: // If Rc > 0 Then PC ← Rs Else PC ← PC +1
                         if (reg[ir.rb] > 0) {
@@ -236,7 +236,7 @@ public class CPU {
                     case JMPIGM: // If RC > 0 then PC <- [A] else PC++
                         if (legal(ir.p)){
                             if (reg[ir.rb] > 0) {
-                               pc = m[ir.p].p;
+                               pc = m.pos[ir.p].p;
                             } else {
                               pc++;
                            }
@@ -244,14 +244,14 @@ public class CPU {
                         break;
                     case JMPILM: // If RC < 0 then PC <- k else PC++
                         if (reg[ir.rb] < 0) {
-                            pc = m[ir.p].p;
+                            pc = m.pos[ir.p].p;
                         } else {
                             pc++;
                         }
                         break;
                     case JMPIEM: // If RC = 0 then PC <- k else PC++
                         if (reg[ir.rb] == 0) {
-                            pc = m[ir.p].p;
+                            pc = m.pos[ir.p].p;
                         } else {
                             pc++;
                         }
