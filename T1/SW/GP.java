@@ -1,6 +1,7 @@
 package SW;
 
 import java.util.HashMap;
+import java.util.Scanner;
 
 import HW.HW;
 import HW.CPU.CPU;
@@ -97,9 +98,12 @@ public class GP {
     }
 
     public void executarTodosProcessos() {
-       while (!pcbList.isEmpty()) {
+       Scanner sc = new Scanner(System.in);
+        while (!pcbList.isEmpty()) {
             scheduler.schedule();
-       }
+            sc.nextLine();
+        }
+        sc.close();
     }
 
     public int getPcbId() {
