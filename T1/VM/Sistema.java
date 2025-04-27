@@ -46,7 +46,7 @@ public class Sistema {
 						System.out.println("Processo Removido");
 					break;
 				case "ps":
-						System.out.println(gp.pcbList.keySet().toString());
+					System.out.println(Arrays.toString(gp.pcbList.stream().mapToInt(p -> p.id).toArray()));
 					break;
 				case "dump":
 					System.out.println("Digite o id do programa: ");
@@ -64,9 +64,9 @@ public class Sistema {
 					System.out.println("Digite o id do programa: ");
 					int id = sc.nextInt();
 					var pcbList = gp.pcbList;
-					for (var p : pcbList.entrySet()) {
-						if (p.getKey() == id) {
-							for (int e : p.getValue().tabPag) {
+					for (var p : pcbList) {
+						if (p.id == id) {
+							for (int e : p.tabPag) {
 								System.out.printf("%d ", e);
 							}
 							System.out.println();

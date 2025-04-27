@@ -1,31 +1,31 @@
 package SW;
 
+import java.util.Queue;
+import java.util.LinkedList;
+
 import HW.HW;
 import SW.GP.*;
 
 public class Scheduler {
-    private GP gp;
+    //private GP gp;
     private HW hw;
-    private int i;
+    private Queue<PCB> q;
 
-    public Scheduler(GP _gp, HW _hw) {
-        gp = _gp;
+    public Scheduler(GP _gp, HW _hw, LinkedList<PCB> ps) {
+        //gp = _gp;
         hw = _hw;
-        i = 0;
+        q = ps;
     }
 
     public void schedule() {
-        if (i >= gp.pcbList.size()) {
-            i = 0;
-        }
-        PCB chosenPCB = gp.pcbList.get(i);
+        PCB chosenPCB = q.poll();
         if (chosenPCB.ready) {
             hw.cpu.setContext(chosenPCB.pc);
             hw.cpu.updateMMU(chosenPCB.tabPag);
             hw.cpu.run(2);
         }
-        gp.pcbList.get(i).pc = hw.cpu.pc;
-        i++;
+        chosenPCB.pc = hw.cpu.pc;
+        q.add(chosenPCB);
         System.out.println(chosenPCB.id);
     }
 }

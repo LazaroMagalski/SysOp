@@ -1,6 +1,7 @@
 package SW;
 
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -27,10 +28,10 @@ public class GP {
 
     }
 
-    private int pcbId; 
+    private int pcbId;
     private GM gm;
     private CPU cpu;
-    public HashMap<Integer, PCB> pcbList;
+    public LinkedList<PCB> pcbList;
     public int procExec;
     public Memory memory;
     private Scheduler scheduler;
@@ -38,9 +39,9 @@ public class GP {
     public GP(HW hw, GM gm){
         this.cpu = hw.cpu;
         this.gm = new GM(hw.mem, 10);
-        this.pcbList = new HashMap<>();
+        this.pcbList = new LinkedList<>();
         this.procExec = 0;
-        this.scheduler = new Scheduler(this, hw);
+        this.scheduler = new Scheduler(this, hw, pcbList);
     }
 
     public boolean criaProcesso(Program program) {
@@ -64,7 +65,7 @@ public class GP {
         gm.carregarPrograma(program.image, alocacao);
         //Seta demais parâmetros do PCB (id, pc=0, etc)
         //Coloca PCB na fila de prontos
-        pcbList.put(novoPCB.id, novoPCB);
+        pcbList.add(novoPCB);
         return true;
     }
 
