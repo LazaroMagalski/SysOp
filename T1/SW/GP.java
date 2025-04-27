@@ -1,6 +1,7 @@
 package SW;
 
 import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import HW.HW;
@@ -101,9 +102,12 @@ public class GP {
        Scanner sc = new Scanner(System.in);
         while (!pcbList.isEmpty()) {
             scheduler.schedule();
-            sc.nextLine();
+            try {
+                sc.nextLine();
+            } catch (NoSuchElementException e) {
+                break;
+            }
         }
-        sc.close();
     }
 
     public int getPcbId() {
