@@ -31,23 +31,12 @@ public class Sistema {
 				case "new":
 					System.out.println("Digite o nome do programa: ");
 					String name = sc.nextLine();
-					switch (name) {
-						case "sum":
-							gp.criaProcesso(progs.retrieveProg("sum"));
-							break;
-						case "fatorial":
-							gp.criaProcesso(progs.retrieveProg("fatorial"));
-							break;
-
-						case "teste":
-							gp.criaProcesso(progs.retrieveProg("sum"));
-							gp.criaProcesso(progs.retrieveProg("fatorial"));
-							break;
-							
-						default:
-							System.out.println("Nome invalido");
-							break;
+					if (name == "teste") {
+						gp.criaProcesso(progs.retrieveProg("sum"));
+						gp.criaProcesso(progs.retrieveProg("fatorial"));
+						break;
 					}
+					gp.criaProcesso(progs.retrieveProg(name));
 					break;
 				case "rm":
 					System.out.println("Digite o id do programa: ");

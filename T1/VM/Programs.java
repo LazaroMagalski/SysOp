@@ -14,7 +14,7 @@ public class Programs {
 
     public Program retrieveProg(String pname){
         for (Program p : progs) {
-                if (p != null & p.name == pname)
+                if (p.name.compareTo(pname) == 0)
                     return p;
             }
             return null;
