@@ -1,5 +1,8 @@
 package SW;
 
+import java.util.ArrayList;
+import java.util.Stack;
+
 import HW.CPU.Opcode;
 import HW.Memory.Memory;
 import HW.Memory.Word;
@@ -11,12 +14,17 @@ public class GM {
 	public int tamMem;
 	public static int tamPag;
 	public int frames;
+	private Stack<Integer> freeFrames;
 
 	public GM(Memory memory, int _tamPag) {
 		this.memory = memory;
 		this.tamMem = memory.pos.length;
 		tamPag = _tamPag;
 		this.frames = tamMem / tamPag;
+		freeFrames = new Stack<>();
+		for (int i = frames-1; i >= 0; i--) {
+			freeFrames.push(i);
+		}
 	}
 
 	public int[] aloca(int nroPalavras) {
@@ -28,21 +36,12 @@ public class GM {
 																				// igual a "x"
 		int paginasAlocadas = 0;
 		int[] tabelaPaginas = new int[paginasNecessarias];
-		for (int frame = 0; frame < frames; frame++) {
+		for (int i = 0; i < paginasNecessarias; i++) {
 			//System.out.println(paginasAlocadas + " " + paginasNecessarias + " " + tabelaPaginas[frame]);
 			
-			int positionFrame = frame * tamPag;
-			
-			if (paginasAlocadas < paginasNecessarias && memory.pos[positionFrame].p == -1) {
-				tabelaPaginas[paginasAlocadas] = frame;
-				
-				for (int index = 0; index < tamPag; index++) {
-					memory.pos[positionFrame + index].p = 0;
-					memory.pos[positionFrame + index].opc = Opcode.DATA;
-				}
+			tabelaPaginas[paginasAlocadas] = freeFrames.pop();
 
-				paginasAlocadas++;
-			}
+			paginasAlocadas++;
 		}
 
 		if (paginasAlocadas == paginasNecessarias) {
@@ -59,13 +58,9 @@ public class GM {
 
 	public void desaloca(int[] tabelaPaginas) {
 		// libera os frames alocados
-
 		for (int i = 0; i < tabelaPaginas.length; i++) {
-			for(int j =0; j < tamPag; j++){
-				memory.pos[i*tamPag+j].p = -1;
-			}
+			freeFrames.push(tabelaPaginas[i]);
 		}
-		return;
 	}
 
 	public void carregarPrograma (Word[] programa, int[] tabelaPaginas) {

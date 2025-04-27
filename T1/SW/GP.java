@@ -8,8 +8,6 @@ import HW.HW;
 import HW.CPU.CPU;
 import HW.Memory.Memory;
 import VM.Program;
-import SW.GM;
-import HW.CPU.CPU;
 
 public class GP {
 
