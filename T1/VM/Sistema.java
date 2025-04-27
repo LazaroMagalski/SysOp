@@ -1,10 +1,11 @@
 package VM;
 
-import java.util.Scanner;
+import java.util.*;
 
 import HW.HW;
 import SW.GM;
 import SW.GP;
+import SW.GP.PCB;
 import SW.SO;
 
 public class Sistema {
@@ -31,7 +32,7 @@ public class Sistema {
 				case "new":
 					System.out.println("Digite o nome do programa: ");
 					String name = sc.nextLine();
-					if (name == "teste") {
+					if (name.compareTo("teste") == 0) {
 						gp.criaProcesso(progs.retrieveProg("sum"));
 						gp.criaProcesso(progs.retrieveProg("fatorial"));
 						break;
@@ -58,6 +59,19 @@ public class Sistema {
 					System.out.println("Digite o final: ");
 					int dumpM_end = sc.nextInt();
 					gp.dumpM(dumpM_start, dumpM_end);
+					break;
+				case "dumpTabPag":
+					System.out.println("Digite o id do programa: ");
+					int id = sc.nextInt();
+					var pcbList = gp.pcbList;
+					for (var p : pcbList.entrySet()) {
+						if (p.getKey() == id) {
+							for (int e : p.getValue().tabPag) {
+								System.out.printf("%d ", e);
+							}
+							System.out.println();
+						}
+					}
 					break;
 				case "exec":
 					System.out.println("Digite o id do programa: ");
