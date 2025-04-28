@@ -93,19 +93,14 @@ public class GP {
         //}
         procExec = id_processo;
         cpu.setContext(pcb.pc);
+        cpu.updateMMU(pcb.tabPag);
         cpu.run(-1);
 
     }
 
     public void executarTodosProcessos() {
-       Scanner sc = new Scanner(System.in);
         while (!pcbList.isEmpty()) {
             scheduler.schedule();
-            try {
-                sc.nextLine();
-            } catch (NoSuchElementException e) {
-                break;
-            }
         }
     }
 

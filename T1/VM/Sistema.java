@@ -74,9 +74,15 @@ public class Sistema {
 					}
 					break;
 				case "exec":
-					System.out.println("Digite o id do programa: ");
-					int exec_id = sc.nextInt();
-					gp.executarProcesso(exec_id);
+				System.out.println("Digite o id do programa: ");
+				int exec_id = sc.nextInt();
+				new Thread() {
+					@Override
+					public void run() {
+						//System.out.println(exec_id);
+						gp.executarProcesso(exec_id);
+					}
+				}.start();
 					break;
 				case "traceOn":
 					hw.cpu.setDebug(true);
@@ -85,8 +91,12 @@ public class Sistema {
 					hw.cpu.setDebug(false);
 					break;
 				case "execAll":
-					System.out.println();
-					gp.executarTodosProcessos();
+				new Thread() {
+					@Override
+					public void run() {
+						gp.executarTodosProcessos();
+					}
+				}.start();
 					break;
 				case "exit":
 					sc.close();

@@ -12,7 +12,7 @@ public class CPU {
     private int minInt;
                         // CONTEXTO da CPU ...
     public int pc;     // ... composto de program counter,
-    private Word ir;    // instruction register,
+    public Word ir;    // instruction register,
     public int[] reg;  // registradores da CPU
     private Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
                         // FIM CONTEXTO DA CPU: tudo que precisa sobre o estado de um processo para
@@ -93,7 +93,7 @@ public class CPU {
     public void run(int nr_intrs) {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
                                                       // esta devidamente setado
         cpuStop = false;
-        while (!cpuStop && nr_intrs > 0) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
+        while (!cpuStop && (nr_intrs > 0 || nr_intrs == -1)) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
 
             // --------------------------------------------------------------------------------------------------
             // FASE DE FETCH
