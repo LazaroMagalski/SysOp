@@ -12,7 +12,7 @@ public class CPU {
     private int minInt;
                         // CONTEXTO da CPU ...
     public int pc;     // ... composto de program counter,
-    private Word ir;    // instruction register,
+    public Word ir;    // instruction register,
     public int[] reg;  // registradores da CPU
     private Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
                         // FIM CONTEXTO DA CPU: tudo que precisa sobre o estado de um processo para

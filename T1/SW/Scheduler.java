@@ -4,6 +4,7 @@ import java.util.Queue;
 import java.util.LinkedList;
 
 import HW.HW;
+import HW.CPU.Opcode;
 import SW.GP.*;
 
 public class Scheduler {
@@ -23,9 +24,12 @@ public class Scheduler {
             hw.cpu.setContext(chosenPCB.pc);
             hw.cpu.updateMMU(chosenPCB.tabPag);
             hw.cpu.run(2);
+            System.out.println(chosenPCB.id);
+        }
+        if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP) {
+            chosenPCB.ready = false;
         }
         chosenPCB.pc = hw.cpu.pc;
         q.add(chosenPCB);
-        System.out.println(chosenPCB.id);
     }
 }

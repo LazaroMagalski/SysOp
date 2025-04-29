@@ -99,12 +99,16 @@ public class GP {
     }
 
     public void executarTodosProcessos() {
-       Scanner sc = new Scanner(System.in);
         while (!pcbList.isEmpty()) {
             scheduler.schedule();
-            try {
-                sc.nextLine();
-            } catch (NoSuchElementException e) {
+            boolean running = false;
+            for (var pcb : pcbList) {
+                if (pcb.ready) {
+                    running = true;
+                    break;
+                }
+            }
+            if (!running) {
                 break;
             }
         }
