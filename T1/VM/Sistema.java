@@ -37,8 +37,8 @@ public class Sistema {
 						gp.criaProcesso(progs.retrieveProg("fatorial"));
 						break;
 					} else if (name.compareTo("teste2") == 0) {
-						gp.criaProcesso(progs.retrieveProg("sum"));
 						gp.criaProcesso(progs.retrieveProg("fatorial"));
+						gp.criaProcesso(progs.retrieveProg("fatorialV2"));
 						gp.desalocaProcesso(0);
 						gp.criaProcesso(progs.retrieveProg("fibonacci10v2"));
 					} else {
