@@ -4,6 +4,7 @@ import java.util.Queue;
 import java.util.LinkedList;
 
 import HW.HW;
+import HW.CPU.Interrupts;
 import HW.CPU.Opcode;
 import SW.GP.*;
 
@@ -23,10 +24,11 @@ public class Scheduler {
         if (chosenPCB.ready) {
             hw.cpu.setContext(chosenPCB.pc);
             hw.cpu.updateMMU(chosenPCB.tabPag);
+            hw.cpu.reg = chosenPCB.regs;
             hw.cpu.run(2);
             System.out.println(chosenPCB.id);
         }
-        if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP) {
+        if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP || hw.cpu.irpt != Interrupts.noInterrupt) {
             chosenPCB.ready = false;
         }
         chosenPCB.pc = hw.cpu.pc;

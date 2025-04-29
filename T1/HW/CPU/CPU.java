@@ -14,7 +14,7 @@ public class CPU {
     public int pc;     // ... composto de program counter,
     public Word ir;    // instruction register,
     public int[] reg;  // registradores da CPU
-    private Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
+    public Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
                         // FIM CONTEXTO DA CPU: tudo que precisa sobre o estado de um processo para
                         // executa-lo
                         // nas proximas versoes isto pode modificar

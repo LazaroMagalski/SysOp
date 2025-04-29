@@ -8,6 +8,7 @@ import java.util.Scanner;
 import HW.HW;
 import HW.CPU.CPU;
 import HW.Memory.Memory;
+import HW.Memory.Word;
 import VM.Program;
 
 public class GP {
@@ -17,6 +18,7 @@ public class GP {
         public int[] tabPag;
         public int pc;
         public boolean ready;
+        public int[] regs;
 
         public PCB(){
             id = pcbId;
@@ -24,6 +26,7 @@ public class GP {
             tabPag = new int[0];
             pc = 0;
             ready = true;
+            regs = new int[10];
         }
 
     }
