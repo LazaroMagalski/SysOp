@@ -93,6 +93,7 @@ public class GP {
         //}
         procExec = id_processo;
         cpu.setContext(pcb.pc);
+        cpu.updateMMU(pcb.tabPag);
         cpu.run(-1);
 
     }

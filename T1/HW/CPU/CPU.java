@@ -93,7 +93,7 @@ public class CPU {
     public void run(int nr_intrs) {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
                                                       // esta devidamente setado
         cpuStop = false;
-        while (!cpuStop && nr_intrs > 0) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
+        while (!cpuStop && (nr_intrs > 0 || nr_intrs == -1)) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
 
             // --------------------------------------------------------------------------------------------------
             // FASE DE FETCH
