@@ -19,20 +19,9 @@ public class GM {
 		tamPag = _tamPag;
 		this.frames = tamMem / tamPag;
 		freeFrames = new Stack<>();
-		for (int i = frames-1; i >= 0; i--) {
+		for (int i = frames-1; i >= 0; i -= 2) {
 			freeFrames.push(i);
 		}
-
-		// Frames já começam alocados
-		freeFrames.removeElement(5);
-		freeFrames.removeElement(20);
-		freeFrames.removeElement(100);
-
-		//for (int i = 0; i < 15; i++){
-		//freeFrames.removeElement(i);
-		//freeFrames.removeElement(i+40);
-		
-		//}
 	}
 
 	public int[] aloca(int nroPalavras) {
