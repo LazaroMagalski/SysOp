@@ -48,7 +48,7 @@ public class Utilities {
         dump(0, p.length); // dump da memoria nestas posicoes
         hw.cpu.setContext(0); // seta pc para endereço 0 - ponto de entrada dos programas
         System.out.println("---------------------------------- inicia execucao ");
-        hw.cpu.run(); // cpu roda programa ate parar
+        hw.cpu.run(-1); // cpu roda programa ate parar
         System.out.println("---------------------------------- memoria após execucao ");
         dump(0, p.length); // dump da memoria com resultado
     }

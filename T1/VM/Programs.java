@@ -1,5 +1,4 @@
 package VM;
-
 import HW.CPU.Opcode;
 import HW.Memory.Word;
 
@@ -12,6 +11,15 @@ public class Programs {
         }
         return null;
     }
+
+    public Program retrieveProg(String pname){
+        for (Program p : progs) {
+                if (p.name.compareTo(pname) == 0)
+                    return p;
+            }
+            return null;
+        }
+    
 
     public Program[] progs = {
         new Program("sum",
