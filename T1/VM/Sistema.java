@@ -43,7 +43,7 @@ public class Sistema {
 						
 					} 
 					 else if (name.compareTo("teste3") == 0) {
-						for (int i = 0; i < 100; i++) {
+						for (int i = 0; i < 70; i++) {
 							gp.criaProcesso(progs.retrieveProg("sum"));
 						}
 					}else {
@@ -81,7 +81,7 @@ public class Sistema {
 								System.out.printf("%d ", e);
 							}
 							System.out.println();
-						}
+						} 
 					}
 					break;
 				case "exec":
