@@ -1,8 +1,9 @@
 package SW;
 
+import java.util.Stack;
+
 import HW.Memory.Memory;
 import HW.Memory.Word;
-import java.util.Stack;
 // -------------------------------------------------------------------------------------------------------
 // --------------------- M E M O R I A - definicoes de palavra de memoria,
 // memória ----------------------
@@ -22,17 +23,6 @@ public class GM {
 		for (int i = frames-1; i >= 0; i--) {
 			freeFrames.push(i);
 		}
-
-		// Frames já começam alocados
-		freeFrames.removeElement(5);
-		freeFrames.removeElement(20);
-		freeFrames.removeElement(100);
-
-		//for (int i = 0; i < 15; i++){
-		//freeFrames.removeElement(i);
-		//freeFrames.removeElement(i+40);
-		
-		//}
 	}
 
 	public int[] aloca(int nroPalavras) {
@@ -46,14 +36,10 @@ public class GM {
 		int[] tabelaPaginas = new int[paginasNecessarias];
 		for (int i = 0; i < paginasNecessarias; i++) {
 			//System.out.println(paginasAlocadas + " " + paginasNecessarias + " " + tabelaPaginas[frame]);
-			try{
+			
 			tabelaPaginas[paginasAlocadas] = freeFrames.pop();
 
 			paginasAlocadas++;
-			} catch (java.util.EmptyStackException e) {
-				//System.out.println("Não há mais frames disponíveis para alocação");
-				break;
-			}
 		}
 
 		if (paginasAlocadas == paginasNecessarias) {

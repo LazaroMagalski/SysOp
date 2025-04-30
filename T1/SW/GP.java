@@ -1,11 +1,15 @@
 package SW;
 
-import HW.CPU.CPU;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
+
 import HW.HW;
+import HW.CPU.CPU;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import VM.Program;
-import java.util.LinkedList;
 
 public class GP {
 
@@ -69,13 +73,7 @@ public class GP {
     }
 
     public boolean desalocaProcesso(int id){
-        PCB pcb = new PCB();
-        try{
-        pcb = pcbList.get(id);
-        } catch (IndexOutOfBoundsException e){
-            System.out.println("Processo inexistente");
-            return false;
-        }
+        PCB pcb = pcbList.get(id);
         if(pcb == null){
             System.out.println("Processo inexistente");
             return false; 
@@ -86,14 +84,8 @@ public class GP {
     }
 
     public void executarProcesso(int id_processo){
-        PCB pcb = new PCB();
-        try {
-            pcb = pcbList.get(id_processo);
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("Processo inexistente");
-            return;
+        PCB pcb = pcbList.get(id_processo);
 
-        }
         if(pcb == null){
             System.out.println("Processo não existe");
             return;
@@ -128,16 +120,8 @@ public class GP {
     public int getPcbId() {
         return pcbId;
     }
-
     public void dump(int id){
-        PCB pcb = new PCB();
-        try {
-            pcb = pcbList.get(id);
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("Processo inexistente");
-            return;
-
-        }
+       PCB pcb = pcbList.get(id);
        if(pcb == null){
             System.out.println("Processo invalido");
             return;
@@ -152,21 +136,11 @@ public class GP {
             }
        }
     }
-
     public void dumpM(int dumpM_start,int dumpM_end){
-        int dumpSize = 0;
-        try {
-        dumpSize = dumpM_end - dumpM_start;
-        Word inicio = gm.memory.pos[dumpM_start];
-        Word fim = gm.memory.pos[dumpM_end];
-        
-    } catch (IndexOutOfBoundsException e) {
-        System.out.println("Posição de memória inválida");
-        return;
-    }
-    for(int i=0; i < dumpSize; i++){
-        System.out.println(gm.memory.pos[dumpM_start+i]);
-    }
+        int dumpSize = dumpM_end - dumpM_start;
+        for(int i=0; i < dumpSize; i++){
+            System.out.println(gm.memory.pos[dumpM_start+i]);
+        }
     }
 
     public void setPcbId(int pcbId) {

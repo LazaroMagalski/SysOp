@@ -1,10 +1,12 @@
 package VM;
 
+import java.util.*;
+
 import HW.HW;
 import SW.GM;
 import SW.GP;
+import SW.GP.PCB;
 import SW.SO;
-import java.util.*;
 
 public class Sistema {
     public HW hw;
@@ -33,20 +35,13 @@ public class Sistema {
 					if (name.compareTo("teste") == 0) {
 						gp.criaProcesso(progs.retrieveProg("sum"));
 						gp.criaProcesso(progs.retrieveProg("fatorial"));
-						
 						break;
 					} else if (name.compareTo("teste2") == 0) {
 						gp.criaProcesso(progs.retrieveProg("fatorial"));
 						gp.criaProcesso(progs.retrieveProg("fatorialV2"));
 						gp.desalocaProcesso(0);
 						gp.criaProcesso(progs.retrieveProg("fibonacci10v2"));
-						
-					} 
-					 else if (name.compareTo("teste3") == 0) {
-						for (int i = 0; i < 70; i++) {
-							gp.criaProcesso(progs.retrieveProg("sum"));
-						}
-					}else {
+					} else {
 						gp.criaProcesso(progs.retrieveProg(name));
 					}
 					break;
@@ -81,7 +76,7 @@ public class Sistema {
 								System.out.printf("%d ", e);
 							}
 							System.out.println();
-						} 
+						}
 					}
 					break;
 				case "exec":
