@@ -24,11 +24,15 @@ public class GM {
 		}
 
 		// Frames já começam alocados
-		for (int i = 0; i < 30; i++){
-		freeFrames.removeElement(i);
-		freeFrames.removeElement(i+100);
+		freeFrames.removeElement(5);
+		freeFrames.removeElement(20);
+		freeFrames.removeElement(100);
+
+		//for (int i = 0; i < 15; i++){
+		//freeFrames.removeElement(i);
+		//freeFrames.removeElement(i+40);
 		
-		}
+		//}
 	}
 
 	public int[] aloca(int nroPalavras) {
@@ -47,7 +51,7 @@ public class GM {
 
 			paginasAlocadas++;
 			} catch (java.util.EmptyStackException e) {
-				System.out.println("Não há mais frames disponíveis para alocação");
+				//System.out.println("Não há mais frames disponíveis para alocação");
 				break;
 			}
 		}
