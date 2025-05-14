@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import javax.print.DocFlavor.READER;
+
 import HW.HW;
 import HW.CPU.CPU;
 import HW.Memory.Memory;
@@ -13,11 +15,17 @@ import VM.Program;
 
 public class GP {
 
+    public enum State {
+        BLOCKED, // novo estado
+        READY,   // antigo true
+        RUNNING  // antigo false
+    }
+
     public class PCB{
         public int id;
         public int[] tabPag;
         public int pc;
-        public boolean ready;
+        public State state;
         public int[] regs;
 
         public PCB(){
@@ -25,7 +33,7 @@ public class GP {
             pcbId++;
             tabPag = new int[0];
             pc = 0;
-            ready = true;
+            state = State.READY;
             regs = new int[10];
         }
 
@@ -106,7 +114,7 @@ public class GP {
             scheduler.schedule();
             boolean running = false;
             for (var pcb : pcbList) {
-                if (pcb.ready) {
+                if (pcb.state == State.READY) {
                     running = true;
                     break;
                 }
