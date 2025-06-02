@@ -5,7 +5,6 @@ import java.util.*;
 import HW.HW;
 import SW.GM;
 import SW.GP;
-import SW.GP.PCB;
 import SW.SO;
 
 public class Sistema {
@@ -16,12 +15,13 @@ public class Sistema {
 	public GP gp;
 
 	public Sistema(int tamMem) {
-		hw = new HW(tamMem);           // memoria do HW tem tamMem palavras
-		so = new SO(hw);
-		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
+		hw = new HW(tamMem);
+		gm =  new GM(hw.mem, 10); // Mantendo tamPag = 10 como discutido
+		gp = new GP(hw, gm); // Instancia GP antes de SO
+		so = new SO(hw, gp); // FEAT: Passa o GP para o SO
+		hw.cpu.setUtilities(so.utils);
+		// As rotinas de tratamento de interrupção e syscall já são setadas dentro do construtor do SO
 		progs = new Programs();
-		gm =  new GM(hw.mem, 10);
-		gp = new GP(hw, gm);
 	}
 	public void menu(){
 		Scanner sc = new Scanner(System.in);

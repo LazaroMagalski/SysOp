@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-import javax.print.DocFlavor.READER;
-
 import HW.HW;
 import HW.CPU.CPU;
 import HW.Memory.Memory;
@@ -43,16 +41,18 @@ public class GP {
     private GM gm;
     private CPU cpu;
     public LinkedList<PCB> pcbList;
+    public LinkedList<PCB> blockedPcbList;
     public int procExec;
-    public Memory memory;
     private Scheduler scheduler;
     
     public GP(HW hw, GM gm){
         this.cpu = hw.cpu;
-        this.gm = new GM(hw.mem, 10);
+        this.gm = gm;
+
         this.pcbList = new LinkedList<>();
+        this.blockedPcbList = new LinkedList<>();
         this.procExec = 0;
-        this.scheduler = new Scheduler(this, hw, pcbList);
+        this.scheduler = new Scheduler(this, hw, pcbList, blockedPcbList);
     }
 
     public boolean criaProcesso(Program program) {
@@ -81,16 +81,51 @@ public class GP {
     }
 
     public boolean desalocaProcesso(int id){
-        PCB pcb = pcbList.get(id);
-        if(pcb == null){
-            System.out.println("Processo inexistente");
-            return false; 
+        PCB pcbToRemove = null;
+        // Tenta encontrar na fila de prontos
+        for (PCB pcb : pcbList) {
+            if (pcb.id == id) {
+                pcbToRemove = pcb;
+                break;
+            }
         }
-        gm.desaloca(pcb.tabPag);
-        pcbList.remove(id);
+        // Se não encontrou na fila de prontos, tenta na fila de bloqueados
+        if (pcbToRemove == null) {
+            for (PCB pcb : blockedPcbList) {
+                if (pcb.id == id) {
+                    pcbToRemove = pcb;
+                    break;
+                }
+            }
+        }
+
+        if(pcbToRemove == null){
+            System.out.println("Processo com ID " + id + " inexistente nas filas.");
+            return false;
+        }
+
+        // Desaloca a memória associada ao PCB
+        if (pcbToRemove.tabPag != null && pcbToRemove.tabPag.length > 0) {
+            gm.desaloca(pcbToRemove.tabPag);
+            System.out.println("Memória do processo " + id + " desalocada.");
+        }
+
+        // Remove o PCB da lista apropriada
+        if (pcbList.contains(pcbToRemove)) {
+            pcbList.remove(pcbToRemove);
+            System.out.println("Processo " + id + " removido da fila de prontos.");
+        } else if (blockedPcbList.contains(pcbToRemove)) {
+            blockedPcbList.remove(pcbToRemove);
+            System.out.println("Processo " + id + " removido da fila de bloqueados.");
+        }
+
+        // Reinicia o procExec se o processo desalocado era o que estava "executando"
+        if (procExec == id) {
+            procExec = -1; // Sinaliza que não há processo em execução
+        }
         return true;
     }
-
+    
     public void executarProcesso(int id_processo){
         PCB pcb = pcbList.get(id_processo);
 
@@ -159,4 +194,18 @@ public class GP {
        return gm;
     }
     
+    public void blockProcess(PCB pcb) {
+        pcb.state = State.BLOCKED;
+        pcbList.remove(pcb); // Remove da fila de prontos
+        blockedPcbList.add(pcb); // Adiciona na fila de bloqueados
+        System.out.println("Processo " + pcb.id + " bloqueado."); // Para debug
+    }
+
+    public void unblockProcess(PCB pcb) {
+        pcb.state = State.READY;
+        blockedPcbList.remove(pcb); // Remove da fila de bloqueados
+        pcbList.add(pcb); // Adiciona de volta na fila de prontos
+        System.out.println("Processo " + pcb.id + " desbloqueado e movido para READY."); // Para debug
+    }
+
 }
