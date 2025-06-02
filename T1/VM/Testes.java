@@ -1,27 +1,44 @@
 package VM;
 
 import java.util.Arrays;
+import java.util.LinkedList; // Necessário para acessar as filas do GP
 
 import HW.CPU.CPU;
+import HW.CPU.Interrupts; // Necessário para simular interrupções
+import HW.CPU.Opcode;     // Necessário para simular instruções
 import HW.Memory.Memory;
+import HW.Memory.Word;    // Necessário para criar objetos Word
+import HW.HW;             // Classe HW
 import SW.GM;
 import SW.GP;
-import HW.CPU.Opcode; // Adicionado para criar Words de teste, se necessário
-import HW.HW; // classe HW
+import SW.GP.PCB;
+import SW.GP.State;       // Importa o enum State
+import SW.SysCallHandling; // Para simular syscall
+import SW.InterruptHandling; // Para simular tratamento de interrupções
+import SW.Scheduler;       // Para chamar o escalonador
+import VM.Program;
+import VM.Programs;
+
 
 public class Testes {
 
     public static void main(String[] args) {
         Testes t = new Testes();
 
-        // 1. Teste para verificar a inicialização do GM.tamPag no Sistema
+        System.out.println("--- Executando todos os testes ---");
+        System.out.println("===================================\n");
+
         t.testSistemaGMInitialization();
-
-        // 2. Teste da alocação do GM
         t.testGMAllocationSuccess();
-
-        // 3. Teste da criação de processo no GP
         t.testProcessCreation();
+        t.testProcessBlockedOnSyscall();
+        t.testProcessUnblockedFromIO();
+        t.testProcessTerminationOnStop();
+        t.testProcessTerminationOnFatalInterrupt();
+        t.testContextSavingAndRestoring();
+
+        System.out.println("\n===================================");
+        System.out.println("--- Todos os testes concluídos ---");
     }
 
     // Teste para verificar a inicialização do GM.tamPag dentro do Sistema
@@ -31,10 +48,10 @@ public class Testes {
         int tamMemoria = 1024;
         Sistema s = new Sistema(tamMemoria); // O Sistema agora inicializa GM com tamPag=10
 
-        if (GM.tamPag == 10) { //
-            System.out.println("SUCESSO: GM.tamPag foi inicializado corretamente como 10 no Sistema."); //
+        if (GM.tamPag == 10) {
+            System.out.println("SUCESSO: GM.tamPag foi inicializado corretamente como 10 no Sistema.");
         } else {
-            System.out.println("FALHA: GM.tamPag foi inicializado como " + GM.tamPag + ", esperado 10."); //
+            System.out.println("FALHA: GM.tamPag foi inicializado como " + GM.tamPag + ", esperado 10.");
         }
         System.out.println("--- Fim do teste: testSistemaGMInitialization ---\n");
     }
@@ -47,86 +64,79 @@ public class Testes {
         GM gm = new GM(memory, 16); // TamPag de 16 para este teste específico
         int numPalavrasParaAlocar = 100;
 
-        System.out.println("GM stats para este teste:"); //
-        System.out.println("  tamMem: " + gm.tamMem); //
-        System.out.println("  frames: " + gm.frames); //
+        System.out.println("GM stats para este teste:");
+        System.out.println("  tamMem: " + gm.tamMem);
+        System.out.println("  frames: " + gm.frames);
         System.out.println("  tamPag: " + GM.tamPag); // (GM.tamPag é estático, refletirá o último GM instanciado ou o valor padrão do Sistema)
 
         int[] tabelaPaginas = gm.aloca(numPalavrasParaAlocar); // Aloca as páginas
 
-        if (tabelaPaginas != null) { //
-            System.out.println("SUCESSO: Alocação de " + numPalavrasParaAlocar + " palavras. Tabela de Páginas: " + Arrays.toString(tabelaPaginas)); //
+        if (tabelaPaginas != null) {
+            System.out.println("SUCESSO: Alocação de " + numPalavrasParaAlocar + " palavras. Tabela de Páginas: " + Arrays.toString(tabelaPaginas));
             // Para testar a desalocação, descomente as linhas abaixo
-            gm.desaloca(tabelaPaginas); //
-            System.out.println("SUCESSO: Desalocação da tabela de páginas realizada."); //
+            gm.desaloca(tabelaPaginas);
+            System.out.println("SUCESSO: Desalocação da tabela de páginas realizada.");
         } else {
-            System.out.println("FALHA: Não foi possível alocar " + numPalavrasParaAlocar + " palavras."); //
+            System.out.println("FALHA: Não foi possível alocar " + numPalavrasParaAlocar + " palavras.");
         }
 
         // Teste de tradução de endereço (exemplo)
-        if (tabelaPaginas != null && tabelaPaginas.length > 0) { //
+        // Certifique-se de que 'tabelaPaginas' não é nula e tem pelo menos um elemento
+        if (tabelaPaginas != null && tabelaPaginas.length > 0) {
             // É importante alocar novamente ou pegar um estado válido da tabela de páginas
             // para que a tradução funcione após a desalocação acima.
             // Para um teste isolado de tradução, o ideal seria não desalocar imediatamente.
             // Vamos testar um cenário simples se a alocação inicial for bem-sucedida
-            System.out.println("Testando tradução de endereço (exemplo):"); //
+            System.out.println("Testando tradução de endereço (exemplo):");
             int enderecoLogicoExemplo = 0; // Primeiro endereço lógico
-            int enderecoFisico = GM.tradutor(enderecoLogicoExemplo, tabelaPaginas); //
-            System.out.println("  Endereço Lógico " + enderecoLogicoExemplo + " traduz para Físico " + enderecoFisico); //
-            if (enderecoFisico != -1) { //
-                System.out.println("  SUCESSO: Tradução de endereço retornou um valor válido."); //
+            int enderecoFisico = GM.tradutor(enderecoLogicoExemplo, tabelaPaginas);
+            System.out.println("  Endereço Lógico " + enderecoLogicoExemplo + " traduz para Físico " + enderecoFisico);
+            if (enderecoFisico != -1) {
+                System.out.println("  SUCESSO: Tradução de endereço retornou um valor válido.");
             } else {
-                System.out.println("  FALHA: Tradução de endereço retornou um valor inválido."); //
+                System.out.println("  FALHA: Tradução de endereço retornou um valor inválido.");
             }
         }
         System.out.println("--- Fim do teste: testGMAllocationSuccess ---\n");
     }
 
-    // Teste original para criação de processo, com correções
+    // Teste para criação de processo
     public void testProcessCreation() {
         System.out.println("--- Iniciando teste: testProcessCreation ---");
 
         int tamMemoria = 1024;
-        Memory memory = new Memory(tamMemoria); //
-        // Precisamos de uma instância de HW para passar para o GP
-        HW hw = new HW(tamMemoria); // O HW já contém a CPU e a Memory
-                                   // Note: o HW inicializa a CPU com debug=true por padrão. Se quiser false, você pode setar depois: hw.cpu.setDebug(false);
+        Memory memory = new Memory(tamMemoria);
+        HW hw = new HW(tamMemoria);
 
-        // O GM instanciado aqui será passado para o GP,
-        // MAS o GP cria um novo GM internamente.
-        // Isso pode ser uma inconsistência no design atual.
-        // Por enquanto, vamos instanciar para cumprir o construtor,
-        // mas é um ponto a ser discutido e talvez alterado no GP.
-        GM gmTeste = new GM(memory, 10); // (usando tamPag=10 para consistência com o que o GP criaria internamente)
+        GM gmTeste = new GM(memory, 10);
 
-        // CORREÇÃO AQUI: Passamos o objeto HW e o objeto GM (mesmo que ele seja recriado internamente pelo GP)
-        GP gp = new GP(hw, gmTeste); //
+        GP gp = new GP(hw, gmTeste);
 
-        Programs programs = new Programs(); //
+        Programs programs = new Programs();
         Program program = programs.progs[0]; // Pegando o primeiro programa (sum)
 
-        System.out.println("Tentando criar processo para o programa: " + program.name); //
-        boolean criado = gp.criaProcesso(program); //
+        System.out.println("Tentando criar processo para o programa: " + program.name);
+        boolean criado = gp.criaProcesso(program);
 
         if (criado) {
             System.out.println("SUCESSO: Processo para '" + program.name + "' criado com sucesso.");
-            System.out.println("  Número de PCBs na lista: " + gp.pcbList.size()); //
-            if (!gp.pcbList.isEmpty()) { //
-                GP.PCB pcbCriado = gp.pcbList.getFirst(); //
-                System.out.println("  ID do PCB criado: " + pcbCriado.id); //
-                System.out.println("  Tabela de Páginas do PCB: " + Arrays.toString(pcbCriado.tabPag)); //
-                // Verificar se o programa foi carregado na memória do GM INTERNO do GP
-                // Atenção: O GM usado pelo GP é 'gp.gm', não 'gmTeste' que foi passado no construtor
+            System.out.println("  Número de PCBs na lista: " + gp.pcbList.size());
+            if (!gp.pcbList.isEmpty()) {
+                GP.PCB pcbCriado = gp.pcbList.getFirst();
+                System.out.println("  ID do PCB criado: " + pcbCriado.id);
+                System.out.println("  Tabela de Páginas do PCB: " + Arrays.toString(pcbCriado.tabPag));
                 System.out.println("  Verificando se o programa foi carregado na memória do GP.gm:");
-                for (int i = 0; i < program.image.length; i++) { //
-                    int enderecoFisico = GM.tradutor(i, pcbCriado.tabPag); //
+                for (int i = 0; i < program.image.length; i++) {
+                    int enderecoFisico = GM.tradutor(i, pcbCriado.tabPag);
                     if (enderecoFisico != -1) {
-                        // Apenas um exemplo de verificação: comparar opcode e parâmetro.
-                        // Uma verificação mais robusta incluiria ra e rb.
                         if (gp.getGm().memory.pos[enderecoFisico].opc != program.image[i].opc ||
-                            gp.getGm().memory.pos[enderecoFisico].p != program.image[i].p) {
+                            gp.getGm().memory.pos[enderecoFisico].p != program.image[i].p ||
+                            gp.getGm().memory.pos[enderecoFisico].ra != program.image[i].ra ||
+                            gp.getGm().memory.pos[enderecoFisico].rb != program.image[i].rb) {
                             System.out.println("  FALHA: Conteúdo da memória no endereço lógico " + i +
                                                " não corresponde ao programa original.");
+                            System.out.println("    Esperado: " + program.image[i].opc + " " + program.image[i].ra + " " + program.image[i].rb + " " + program.image[i].p);
+                            System.out.println("    Encontrado: " + gp.getGm().memory.pos[enderecoFisico].opc + " " + gp.getGm().memory.pos[enderecoFisico].ra + " " + gp.getGm().memory.pos[enderecoFisico].rb + " " + gp.getGm().memory.pos[enderecoFisico].p);
                             break;
                         }
                     } else {
@@ -135,6 +145,7 @@ public class Testes {
                     }
                 }
                 System.out.println("  SUCESSO: Verificação básica de carregamento do programa na memória do GP.gm.");
+                gp.desalocaProcesso(pcbCriado.id); // Limpa o processo para não afetar outros testes
 
             }
         } else {
@@ -142,5 +153,386 @@ public class Testes {
             System.out.println("  Provável causa: memória insuficiente ou programa muito grande.");
         }
         System.out.println("--- Fim do teste: testProcessCreation ---\n");
+    }
+
+    // NOVO TESTE: Verifica se um processo é bloqueado corretamente ao fazer SYSCALL
+    public void testProcessBlockedOnSyscall() {
+        System.out.println("--- Iniciando teste: testProcessBlockedOnSyscall ---");
+        int tamMemoria = 1024;
+        HW hw = new HW(tamMemoria);
+        hw.cpu.setDebug(false); // Desliga o debug da CPU para o teste não ter muita saída
+        GM gm = new GM(hw.mem, 10);
+        GP gp = new GP(hw, gm);
+
+        // Um programa simples que faz uma SYSCALL (escreve um valor)
+        Program progSyscall = new Program("progSyscall",
+            new Word[]{
+                new Word(Opcode.LDI, 8, -1, 2),    // r8 = 2 (OUT)
+                new Word(Opcode.LDI, 9, -1, 50),   // r9 = 50 (endereço na memória)
+                new Word(Opcode.LDI, 0, -1, 123),  // r0 = 123 (valor a ser escrito)
+                new Word(Opcode.STD, 0, -1, 50),   // [50] = 123
+                new Word(Opcode.SYSCALL, -1, -1, -1), // Chama SYSCALL
+                new Word(Opcode.STOP, -1, -1, -1), // Nunca deveria chegar aqui se bloqueado
+                new Word(Opcode.DATA, -1, -1, 0) // Posição 50 para o dado
+            }
+        );
+
+        // Cria o processo
+        boolean criado = gp.criaProcesso(progSyscall);
+        if (!criado) {
+            System.out.println("FALHA: Não foi possível criar o processo para testProcessBlockedOnSyscall.");
+            System.out.println("--- Fim do teste: testProcessBlockedOnSyscall ---\n");
+            return;
+        }
+
+        PCB pcb1 = gp.pcbList.getFirst(); // O primeiro e único PCB
+        gp.procExec = pcb1.id; // Simula que este processo está em execução
+
+        // Inicializa o SysCallHandling e InterruptHandling
+        SysCallHandling sc = new SysCallHandling(hw, gp);
+        InterruptHandling ih = new InterruptHandling(hw, gp); // Passa GP para IH
+        hw.cpu.setAddressOfHandlers(ih, sc); // Seta os handlers na CPU
+
+        // Executa até a instrução SYSCALL (PC chegará em 5)
+        hw.cpu.setContext(pcb1.pc);
+        hw.cpu.updateMMU(pcb1.tabPag);
+        System.arraycopy(pcb1.regs, 0, hw.cpu.reg, 0, pcb1.regs.length);
+        hw.cpu.irpt = Interrupts.noInterrupt; // Limpa interrupções
+        hw.cpu.run(5); // Roda 5 instruções, a 5a é a SYSCALL
+
+        // Após a SYSCALL, o SysCallHandling.handle() deve ter sido chamado,
+        // e o processo deve ter sido bloqueado.
+        if (pcb1.state == State.BLOCKED) {
+            System.out.println("SUCESSO: Processo " + pcb1.id + " mudou para estado BLOCKED.");
+        } else {
+            System.out.println("FALHA: Processo " + pcb1.id + " está no estado " + pcb1.state + ", esperado BLOCKED.");
+        }
+
+        // Verifica se o PCB foi movido da fila de prontos para a de bloqueados
+        if (!gp.pcbList.contains(pcb1) && gp.blockedPcbList.contains(pcb1)) {
+            System.out.println("SUCESSO: PCB movido da fila de prontos para a fila de bloqueados.");
+        } else {
+            System.out.println("FALHA: PCB não foi movido corretamente entre as filas.");
+            System.out.println("  Na fila de prontos? " + gp.pcbList.contains(pcb1));
+            System.out.println("  Na fila de bloqueados? " + gp.blockedPcbList.contains(pcb1));
+        }
+
+        // Verifica se o PC e registradores foram salvos corretamente no PCB
+        // O PC deve ser o PC APÓS a instrução SYSCALL (pcb1.pc = hw.cpu.pc)
+        // A instrução SYSCALL está em 4, pc++ leva para 5.
+        if (pcb1.pc == 5) {
+             System.out.println("SUCESSO: PC salvo corretamente no PCB (" + pcb1.pc + ").");
+        } else {
+             System.out.println("FALHA: PC salvo incorretamente no PCB (" + pcb1.pc + "), esperado 5.");
+        }
+
+        // Exemplo de verificação de um registrador salvo
+        if (pcb1.regs[8] == 2 && pcb1.regs[9] == 50 && pcb1.regs[0] == 123) {
+            System.out.println("SUCESSO: Registradores (r0, r8 e r9) salvos corretamente no PCB.");
+        } else {
+            System.out.println("FALHA: Registradores r0, r8/r9 salvos incorretamente.");
+            System.out.println("  r0: " + pcb1.regs[0] + ", esperado 123");
+            System.out.println("  r8: " + pcb1.regs[8] + ", esperado 2");
+            System.out.println("  r9: " + pcb1.regs[9] + ", esperado 50");
+        }
+
+        // Desaloca o processo para limpar o estado para outros testes
+        gp.desalocaProcesso(pcb1.id);
+
+        System.out.println("--- Fim do teste: testProcessBlockedOnSyscall ---\n");
+    }
+
+    // NOVO TESTE: Simula interrupção de I/O e verifica desbloqueio
+    public void testProcessUnblockedFromIO() {
+        System.out.println("--- Iniciando teste: testProcessUnblockedFromIO ---");
+        // PRÉ-REQUISITO: Adicione Interrupts.intIOCompleta em HW.CPU.Interrupts
+        // PRÉ-REQUISITO: Altere InterruptHandling.java para lidar com intIOCompleta
+
+        int tamMemoria = 1024;
+        HW hw = new HW(tamMemoria);
+        hw.cpu.setDebug(false);
+        GM gm = new GM(hw.mem, 10);
+        GP gp = new GP(hw, gm);
+
+        // Um programa que faz SYSCALL (para ser bloqueado)
+        Program progSyscall = new Program("progToBlock",
+            new Word[]{
+                new Word(Opcode.LDI, 8, -1, 1),    // r8 = 1 (IN)
+                new Word(Opcode.LDI, 9, -1, 50),   // r9 = 50 (endereço para leitura)
+                new Word(Opcode.SYSCALL, -1, -1, -1), // Chama SYSCALL
+                new Word(Opcode.STOP, -1, -1, -1)
+            }
+        );
+
+        boolean criado = gp.criaProcesso(progSyscall);
+        if (!criado) {
+            System.out.println("FALHA: Não foi possível criar o processo para testProcessUnblockedFromIO.");
+            System.out.println("--- Fim do teste: testProcessUnblockedFromIO ---\n");
+            return;
+        }
+
+        PCB pcb1 = gp.pcbList.getFirst();
+        gp.procExec = pcb1.id;
+
+        SysCallHandling sc = new SysCallHandling(hw, gp);
+        InterruptHandling ih = new InterruptHandling(hw, gp); // Passa GP para IH
+        hw.cpu.setAddressOfHandlers(ih, sc);
+
+        // Simula a execução da SYSCALL para bloquear o processo
+        hw.cpu.setContext(pcb1.pc);
+        hw.cpu.updateMMU(pcb1.tabPag);
+        System.arraycopy(pcb1.regs, 0, hw.cpu.reg, 0, pcb1.regs.length);
+        hw.cpu.irpt = Interrupts.noInterrupt;
+        hw.cpu.run(3); // Executa até a SYSCALL (instrução 2 + 1 de PC++) -> PC=3
+
+        if (pcb1.state == State.BLOCKED) {
+            System.out.println("SUCESSO: Processo " + pcb1.id + " inicialmente BLOCKED.");
+        } else {
+            System.out.println("FALHA: Processo " + pcb1.id + " não está BLOCKED antes de simular interrupção. Estado: " + pcb1.state);
+            gp.desalocaProcesso(pcb1.id);
+            System.out.println("--- Fim do teste: testProcessUnblockedFromIO ---\n");
+            return;
+        }
+        if (!gp.pcbList.contains(pcb1) && gp.blockedPcbList.contains(pcb1)) {
+            System.out.println("SUCESSO: PCB está na fila de bloqueados.");
+        } else {
+            System.out.println("FALHA: PCB não está corretamente na fila de bloqueados.");
+            System.out.println("  Na fila de prontos? " + gp.pcbList.contains(pcb1));
+            System.out.println("  Na fila de bloqueados? " + gp.blockedPcbList.contains(pcb1));
+            gp.desalocaProcesso(pcb1.id);
+            System.out.println("--- Fim do teste: testProcessUnblockedFromIO ---\n");
+            return;
+        }
+
+        // SIMULAÇÃO DA INTERRUPÇÃO DE I/O:
+        // A thread do console/dispositivo, ao terminar o I/O, chamaria gp.unblockProcess(pcb1);
+        // E sinalizaria uma interrupção de I/O na CPU.
+        // Vamos chamar diretamente o método do GP para simular o desbloqueio.
+        // No cenário real, a interrupção seria sinalizada, e o scheduler a pegaria.
+        // Aqui, para o teste unitário, chamamos o handler manualmente e depois testamos o estado.
+        ih.handle(Interrupts.intIOCompleta); // Simula a interrupção de I/O completa. Isso deve chamar gp.unblockProcess(primeiro pcb bloqueado)
+
+        // Após o desbloqueio, o processo deve estar READY e na fila de prontos
+        if (pcb1.state == State.READY) {
+            System.out.println("SUCESSO: Processo " + pcb1.id + " mudou para estado READY após desbloqueio.");
+        } else {
+            System.out.println("FALHA: Processo " + pcb1.id + " está no estado " + pcb1.state + ", esperado READY.");
+        }
+
+        if (gp.pcbList.contains(pcb1) && !gp.blockedPcbList.contains(pcb1)) {
+            System.out.println("SUCESSO: PCB movido para a fila de prontos e removido da bloqueados.");
+        } else {
+            System.out.println("FALHA: PCB não foi movido corretamente entre as filas após desbloqueio.");
+            System.out.println("  Na fila de prontos? " + gp.pcbList.contains(pcb1));
+            System.out.println("  Na fila de bloqueados? " + gp.blockedPcbList.contains(pcb1));
+        }
+
+        gp.desalocaProcesso(pcb1.id);
+        System.out.println("--- Fim do teste: testProcessUnblockedFromIO ---\n");
+    }
+
+    // NOVO TESTE: Verifica se um processo é finalizado corretamente ao encontrar STOP
+    public void testProcessTerminationOnStop() {
+        System.out.println("--- Iniciando teste: testProcessTerminationOnStop ---");
+        int tamMemoria = 1024;
+        HW hw = new HW(tamMemoria);
+        hw.cpu.setDebug(false);
+        GM gm = new GM(hw.mem, 10);
+        GP gp = new GP(hw, gm);
+
+        Program progStop = new Program("progStop",
+            new Word[]{
+                new Word(Opcode.LDI, 0, -1, 100),
+                new Word(Opcode.STOP, -1, -1, -1) // Instrução STOP
+            }
+        );
+
+        boolean criado = gp.criaProcesso(progStop);
+        if (!criado) {
+            System.out.println("FALHA: Não foi possível criar o processo para testProcessTerminationOnStop.");
+            System.out.println("--- Fim do teste: testProcessTerminationOnStop ---\n");
+            return;
+        }
+
+        PCB pcb1 = gp.pcbList.getFirst();
+        gp.procExec = pcb1.id;
+
+        // Configura o Scheduler e SO para simular o ambiente
+        SysCallHandling sc = new SysCallHandling(hw, gp);
+        InterruptHandling ih = new InterruptHandling(hw, gp); // Passa GP para IH
+        hw.cpu.setAddressOfHandlers(ih, sc);
+
+        Scheduler scheduler = new Scheduler(gp, hw, gp.pcbList, gp.blockedPcbList);
+
+        System.out.println("Executando o scheduler para o processo " + pcb1.id + " (espera STOP)...");
+        scheduler.schedule(); // Executa o processo até STOP ou fatia de tempo
+
+        // Após o schedule, o processo deve ter sido desalocado
+        if (!gp.pcbList.contains(pcb1) && !gp.blockedPcbList.contains(pcb1)) {
+            System.out.println("SUCESSO: Processo " + pcb1.id + " removido de todas as filas após STOP.");
+        } else {
+            System.out.println("FALHA: Processo " + pcb1.id + " ainda presente nas filas após STOP.");
+            System.out.println("  Na fila de prontos? " + gp.pcbList.contains(pcb1));
+            System.out.println("  Na fila de bloqueados? " + gp.blockedPcbList.contains(pcb1));
+        }
+
+        // Podemos tentar desalocar novamente para verificar o método desalocaProcesso
+        // Se ele retornar false, significa que o processo já não existia, o que é o esperado.
+        if (!gp.desalocaProcesso(pcb1.id)) {
+            System.out.println("SUCESSO: Tentativa de desalocar processo já finalizado (retornou false).");
+        } else {
+            System.out.println("FALHA: Processo foi desalocado novamente ou não deveria ter sido.");
+        }
+
+        System.out.println("--- Fim do teste: testProcessTerminationOnStop ---\n");
+    }
+
+    // NOVO TESTE: Verifica se um processo é finalizado em caso de interrupção fatal
+    public void testProcessTerminationOnFatalInterrupt() {
+        System.out.println("--- Iniciando teste: testProcessTerminationOnFatalInterrupt ---");
+        int tamMemoria = 1024;
+        HW hw = new HW(tamMemoria);
+        hw.cpu.setDebug(false);
+        GM gm = new GM(hw.mem, 10);
+        GP gp = new GP(hw, gm);
+
+        // Programa com uma instrução inválida (Opcode.___) ou acesso a endereço inválido
+        Program progFatal = new Program("progFatal",
+            new Word[]{
+                new Word(Opcode.LDI, 0, -1, 100),
+                new Word(Opcode.___, -1, -1, -1) // Instrução inválida
+            }
+        );
+
+        boolean criado = gp.criaProcesso(progFatal);
+        if (!criado) {
+            System.out.println("FALHA: Não foi possível criar o processo para testProcessTerminationOnFatalInterrupt.");
+            System.out.println("--- Fim do teste: testProcessTerminationOnFatalInterrupt ---\n");
+            return;
+        }
+
+        PCB pcb1 = gp.pcbList.getFirst();
+        gp.procExec = pcb1.id;
+
+        SysCallHandling sc = new SysCallHandling(hw, gp);
+        InterruptHandling ih = new InterruptHandling(hw, gp); // Passa GP para IH
+        hw.cpu.setAddressOfHandlers(ih, sc);
+
+        Scheduler scheduler = new Scheduler(gp, hw, gp.pcbList, gp.blockedPcbList);
+
+        System.out.println("Executando o scheduler para o processo " + pcb1.id + " (espera interrupção fatal)...");
+        scheduler.schedule(); // Executa o processo, deve gerar intInstrucaoInvalida
+
+        // Após o schedule, o processo deve ter sido desalocado
+        if (!gp.pcbList.contains(pcb1) && !gp.blockedPcbList.contains(pcb1)) {
+            System.out.println("SUCESSO: Processo " + pcb1.id + " removido de todas as filas após interrupção fatal.");
+        } else {
+            System.out.println("FALHA: Processo " + pcb1.id + " ainda presente nas filas após interrupção fatal.");
+            System.out.println("  Na fila de prontos? " + gp.pcbList.contains(pcb1));
+            System.out.println("  Na fila de bloqueados? " + gp.blockedPcbList.contains(pcb1));
+        }
+
+        if (!gp.desalocaProcesso(pcb1.id)) {
+            System.out.println("SUCESSO: Tentativa de desalocar processo já finalizado (retornou false).");
+        } else {
+            System.out.println("FALHA: Processo foi desalocado novamente ou não deveria ter sido.");
+        }
+
+        System.out.println("--- Fim do teste: testProcessTerminationOnFatalInterrupt ---\n");
+    }
+
+    // NOVO TESTE: Verifica o salvamento e restauração do contexto (PC e registradores)
+    public void testContextSavingAndRestoring() {
+        System.out.println("--- Iniciando teste: testContextSavingAndRestoring ---");
+        int tamMemoria = 1024;
+        HW hw = new HW(tamMemoria);
+        hw.cpu.setDebug(false);
+        GM gm = new GM(hw.mem, 10);
+        GP gp = new GP(hw, gm);
+
+        // Programa para simular execução e preempção
+        Program progContext = new Program("progContext",
+            new Word[]{
+                new Word(Opcode.LDI, 0, -1, 10), // r0 = 10 (PC=0)
+                new Word(Opcode.ADDI, 0, -1, 5), // r0 = 15 (PC=1)
+                new Word(Opcode.LDI, 1, -1, 20), // r1 = 20 (PC=2)
+                new Word(Opcode.ADD, 0, 1, -1),  // r0 = 15 + 20 = 35 (PC=3)
+                new Word(Opcode.LDI, 2, -1, 30), // r2 = 30 (PC=4)
+                new Word(Opcode.STOP, -1, -1, -1) // (PC=5)
+            }
+        );
+
+        boolean criado = gp.criaProcesso(progContext);
+        if (!criado) {
+            System.out.println("FALHA: Não foi possível criar o processo para testContextSavingAndRestoring.");
+            System.out.println("--- Fim do teste: testContextSavingAndRestoring ---\n");
+            return;
+        }
+
+        PCB pcb1 = gp.pcbList.getFirst();
+        gp.procExec = pcb1.id;
+
+        SysCallHandling sc = new SysCallHandling(hw, gp);
+        InterruptHandling ih = new InterruptHandling(hw, gp); // Passa GP para IH
+        hw.cpu.setAddressOfHandlers(ih, sc);
+
+        Scheduler scheduler = new Scheduler(gp, hw, gp.pcbList, gp.blockedPcbList);
+
+        // --- Primeira execução: Roda por uma fatia de tempo (2 instruções) ---
+        System.out.println("Execução 1: Processo " + pcb1.id + " roda 2 instruções.");
+        scheduler.schedule();
+
+        // Após a primeira fatia (LDI r0, 10; ADDI r0, 5)
+        // PC deve estar em 2 (apontando para LDI r1, 20)
+        // r0 deve ser 15
+        if (pcb1.pc == 2 && pcb1.regs[0] == 15 && pcb1.state == State.READY) {
+            System.out.println("SUCESSO (Exec 1): Contexto salvo corretamente (PC=2, R0=15). Estado: " + pcb1.state);
+        } else {
+            System.out.println("FALHA (Exec 1): Contexto salvo incorretamente.");
+            System.out.println("  PC: " + pcb1.pc + ", Esperado: 2");
+            System.out.println("  R0: " + pcb1.regs[0] + ", Esperado: 15");
+            System.out.println("  Estado: " + pcb1.state + ", Esperado: READY");
+            gp.desalocaProcesso(pcb1.id);
+            System.out.println("--- Fim do teste: testContextSavingAndRestoring ---\n");
+            return;
+        }
+
+        // --- Segunda execução: Roda mais uma fatia de tempo (2 instruções) ---
+        // O scheduler pegará pcb1 de volta, carregará o contexto salvo e continuará.
+        System.out.println("Execução 2: Processo " + pcb1.id + " roda mais 2 instruções.");
+        scheduler.schedule();
+
+        // Após a segunda fatia (LDI r1, 20; ADD r0, r1)
+        // PC deve estar em 4 (apontando para LDI r2, 30)
+        // r0 deve ser 35 (15 + 20)
+        // r1 deve ser 20
+        if (pcb1.pc == 4 && pcb1.regs[0] == 35 && pcb1.regs[1] == 20 && pcb1.state == State.READY) {
+            System.out.println("SUCESSO (Exec 2): Contexto salvo e restaurado corretamente (PC=4, R0=35, R1=20). Estado: " + pcb1.state);
+        } else {
+            System.out.println("FALHA (Exec 2): Contexto salvo/restaurado incorretamente.");
+            System.out.println("  PC: " + pcb1.pc + ", Esperado: 4");
+            System.out.println("  R0: " + pcb1.regs[0] + ", Esperado: 35");
+            System.out.println("  R1: " + pcb1.regs[1] + ", Esperado: 20");
+            System.out.println("  Estado: " + pcb1.state + ", Esperado: READY");
+            gp.desalocaProcesso(pcb1.id);
+            System.out.println("--- Fim do teste: testContextSavingAndRestoring ---\n");
+            return;
+        }
+
+        // --- Terceira execução: Deve executar a última instrução e STOP ---
+        System.out.println("Execução 3: Processo " + pcb1.id + " roda últimas instruções e STOP.");
+        scheduler.schedule();
+
+        // Após o STOP, o processo deve ser finalizado
+        if (!gp.pcbList.contains(pcb1) && !gp.blockedPcbList.contains(pcb1)) {
+            System.out.println("SUCESSO (Exec 3): Processo " + pcb1.id + " finalizado após STOP.");
+        } else {
+            System.out.println("FALHA (Exec 3): Processo " + pcb1.id + " ainda presente nas filas após STOP.");
+            System.out.println("  Na fila de prontos? " + gp.pcbList.contains(pcb1));
+            System.out.println("  Na fila de bloqueados? " + gp.blockedPcbList.contains(pcb1));
+        }
+
+        gp.desalocaProcesso(pcb1.id); // Garante a limpeza, caso o teste falhe antes
+        System.out.println("--- Fim do teste: testContextSavingAndRestoring ---\n");
     }
 }
