@@ -19,14 +19,15 @@ public class Scheduler {
         q = ps;
     }
 
-    public void schedule() {
+    public void schedule(PCB nopPCB) {
         PCB chosenPCB = q.poll();
+        if (chosenPCB == null) {
+            chosenPCB = nopPCB;
+        }
         if (chosenPCB.ready) {
             hw.cpu.setContext(chosenPCB.pc);
             hw.cpu.updateMMU(chosenPCB.tabPag);
             hw.cpu.reg = chosenPCB.regs;
-            hw.cpu.run(2);
-            System.out.println(chosenPCB.id);
         }
         if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP || hw.cpu.irpt != Interrupts.noInterrupt) {
             chosenPCB.ready = false;

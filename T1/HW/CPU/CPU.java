@@ -7,7 +7,7 @@ import SW.InterruptHandling;
 import SW.SysCallHandling;
 import SW.Utilities;
 
-public class CPU {
+public class CPU implements Runnable {
     private int maxInt; // valores maximo e minimo para inteiros nesta cpu
     private int minInt;
                         // CONTEXTO da CPU ...
@@ -90,10 +90,11 @@ public class CPU {
         this.tabPag = tabPag;
     }
 
-    public void run(int nr_intrs) {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
+    @Override
+    public void run() {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
                                                       // esta devidamente setado
-        cpuStop = false;
-        while (!cpuStop && (nr_intrs > 0 || nr_intrs == -1)) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
+
+        while (true) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
 
             // --------------------------------------------------------------------------------------------------
             // FASE DE FETCH
@@ -280,6 +281,9 @@ public class CPU {
                         cpuStop = true;
                         break;
 
+                    case NOP:
+                        break;
+
                     // Inexistente
                     default:
                         irpt = Interrupts.intInstrucaoInvalida;
@@ -291,9 +295,6 @@ public class CPU {
             if (irpt != Interrupts.noInterrupt) { // existe interrupção
                 ih.handle(irpt);                  // desvia para rotina de tratamento - esta rotina é do SO
                 cpuStop = true;                   // nesta versao, para a CPU
-            }
-            if (nr_intrs != -1) {
-                nr_intrs -= 1;
             }
         } // FIM DO CICLO DE UMA INSTRUÇÃO
     }
