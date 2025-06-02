@@ -155,5 +155,8 @@ public class GP {
         this.pcbId = pcbId;
     }
 
+    public GM getGm() {
+       return gm;
+    }
     
 }

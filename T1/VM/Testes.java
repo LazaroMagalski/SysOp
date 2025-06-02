@@ -1,14 +1,13 @@
-package T1;
+package VM;
 
-import java.util.Arrays; //
+import java.util.Arrays;
 
-import HW.CPU.CPU; //
-import HW.Memory.Memory; //
-import SW.GM; //
-import SW.GP; //
-import VM.Program; //
-import VM.Programs; //
+import HW.CPU.CPU;
+import HW.Memory.Memory;
+import SW.GM;
+import SW.GP;
 import HW.CPU.Opcode; // Adicionado para criar Words de teste, se necessário
+import HW.HW; // classe HW
 
 public class Testes {
 
@@ -40,7 +39,7 @@ public class Testes {
         System.out.println("--- Fim do teste: testSistemaGMInitialization ---\n");
     }
 
-    // Seu teste original para alocação do GM, com algumas correções/melhorias
+    // Teste original para alocação do GM, com algumas correções/melhorias
     public void testGMAllocationSuccess() {
         System.out.println("--- Iniciando teste: testGMAllocationSuccess ---");
 
@@ -83,36 +82,64 @@ public class Testes {
         System.out.println("--- Fim do teste: testGMAllocationSuccess ---\n");
     }
 
-    // Seu teste original para criação de processo, com correções
+    // Teste original para criação de processo, com correções
     public void testProcessCreation() {
         System.out.println("--- Iniciando teste: testProcessCreation ---");
 
-        Memory memory = new Memory(1024); //
-        CPU cpu = new CPU(memory, false); //
-        // O GM do GP usa o tamanho da página que você setou no Sistema.java
-        // Mas para este teste isolado, podemos instanciar um GM específico.
-        // Se você quer que o GP use o GM do Sistema, então o Sistema.java precisa ser instanciado e o GP pego de lá.
-        // Por clareza e isolamento do teste, vamos usar um GM instanciado aqui.
-        GM gm = new GM(memory, 10); // Usando tamPag = 10 para consistência com a mudança do Sistema
-        GP gp = new GP(cpu, gm); //
+        int tamMemoria = 1024;
+        Memory memory = new Memory(tamMemoria); //
+        // Precisamos de uma instância de HW para passar para o GP
+        HW hw = new HW(tamMemoria); // O HW já contém a CPU e a Memory
+                                   // Note: o HW inicializa a CPU com debug=true por padrão. Se quiser false, você pode setar depois: hw.cpu.setDebug(false);
+
+        // O GM instanciado aqui será passado para o GP,
+        // MAS o GP cria um novo GM internamente.
+        // Isso pode ser uma inconsistência no design atual.
+        // Por enquanto, vamos instanciar para cumprir o construtor,
+        // mas é um ponto a ser discutido e talvez alterado no GP.
+        GM gmTeste = new GM(memory, 10); // (usando tamPag=10 para consistência com o que o GP criaria internamente)
+
+        // CORREÇÃO AQUI: Passamos o objeto HW e o objeto GM (mesmo que ele seja recriado internamente pelo GP)
+        GP gp = new GP(hw, gmTeste); //
+
         Programs programs = new Programs(); //
         Program program = programs.progs[0]; // Pegando o primeiro programa (sum)
 
         System.out.println("Tentando criar processo para o programa: " + program.name); //
         boolean criado = gp.criaProcesso(program); //
 
-        if (criado) { //
-            System.out.println("SUCESSO: Processo para '" + program.name + "' criado com sucesso."); //
+        if (criado) {
+            System.out.println("SUCESSO: Processo para '" + program.name + "' criado com sucesso.");
             System.out.println("  Número de PCBs na lista: " + gp.pcbList.size()); //
-            // Você pode querer inspecionar o PCB criado
             if (!gp.pcbList.isEmpty()) { //
-                GP.PCB pcbCriado = gp.pcbList.getFirst(); // Pega o primeiro PCB
+                GP.PCB pcbCriado = gp.pcbList.getFirst(); //
                 System.out.println("  ID do PCB criado: " + pcbCriado.id); //
                 System.out.println("  Tabela de Páginas do PCB: " + Arrays.toString(pcbCriado.tabPag)); //
+                // Verificar se o programa foi carregado na memória do GM INTERNO do GP
+                // Atenção: O GM usado pelo GP é 'gp.gm', não 'gmTeste' que foi passado no construtor
+                System.out.println("  Verificando se o programa foi carregado na memória do GP.gm:");
+                for (int i = 0; i < program.image.length; i++) { //
+                    int enderecoFisico = GM.tradutor(i, pcbCriado.tabPag); //
+                    if (enderecoFisico != -1) {
+                        // Apenas um exemplo de verificação: comparar opcode e parâmetro.
+                        // Uma verificação mais robusta incluiria ra e rb.
+                        if (gp.getGm().memory.pos[enderecoFisico].opc != program.image[i].opc ||
+                            gp.getGm().memory.pos[enderecoFisico].p != program.image[i].p) {
+                            System.out.println("  FALHA: Conteúdo da memória no endereço lógico " + i +
+                                               " não corresponde ao programa original.");
+                            break;
+                        }
+                    } else {
+                        System.out.println("  FALHA: Endereço lógico " + i + " inválido na tabela de páginas do PCB.");
+                        break;
+                    }
+                }
+                System.out.println("  SUCESSO: Verificação básica de carregamento do programa na memória do GP.gm.");
+
             }
         } else {
-            System.out.println("FALHA: Processo para '" + program.name + "' NÃO foi criado."); //
-            System.out.println("  Provável causa: memória insuficiente ou programa muito grande."); //
+            System.out.println("FALHA: Processo para '" + program.name + "' NÃO foi criado.");
+            System.out.println("  Provável causa: memória insuficiente ou programa muito grande.");
         }
         System.out.println("--- Fim do teste: testProcessCreation ---\n");
     }
