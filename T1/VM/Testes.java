@@ -167,13 +167,13 @@ public class Testes {
         // Um programa simples que faz uma SYSCALL (escreve um valor)
         Program progSyscall = new Program("progSyscall",
             new Word[]{
-                new Word(Opcode.LDI, 8, -1, 2),    // r8 = 2 (OUT)
-                new Word(Opcode.LDI, 9, -1, 50),   // r9 = 50 (endereço na memória)
-                new Word(Opcode.LDI, 0, -1, 123),  // r0 = 123 (valor a ser escrito)
-                new Word(Opcode.STD, 0, -1, 50),   // [50] = 123
-                new Word(Opcode.SYSCALL, -1, -1, -1), // Chama SYSCALL
-                new Word(Opcode.STOP, -1, -1, -1), // Nunca deveria chegar aqui se bloqueado
-                new Word(Opcode.DATA, -1, -1, 0) // Posição 50 para o dado
+                new Word(Opcode.LDI, 8, -1, 2),    // 0: r8 = 2 (OUT)
+                new Word(Opcode.LDI, 9, -1, 6),   // 1: r9 = 6 (endereço na memória) <-- MUDANÇA AQUI (antes era 50)
+                new Word(Opcode.LDI, 0, -1, 123),  // 2: r0 = 123 (valor a ser escrito)
+                new Word(Opcode.STD, 0, -1, 6),   // 3: [6] = 123 <-- MUDANÇA AQUI (antes era 50)
+                new Word(Opcode.SYSCALL, -1, -1, -1), // 4: Chama SYSCALL
+                new Word(Opcode.STOP, -1, -1, -1), // 5: Nunca deveria chegar aqui se bloqueado
+                new Word(Opcode.DATA, -1, -1, 0) // 6: Posição para o dado (endereço lógico 6)
             }
         );
 
@@ -257,14 +257,40 @@ public class Testes {
         // Um programa que faz SYSCALL (para ser bloqueado)
         Program progSyscall = new Program("progToBlock",
             new Word[]{
-                new Word(Opcode.LDI, 8, -1, 1),    // r8 = 1 (IN)
-                new Word(Opcode.LDI, 9, -1, 50),   // r9 = 50 (endereço para leitura)
-                new Word(Opcode.SYSCALL, -1, -1, -1), // Chama SYSCALL
-                new Word(Opcode.STOP, -1, -1, -1)
+                new Word(Opcode.LDI, 8, -1, 1),    // 0: r8 = 1 (IN)
+                new Word(Opcode.LDI, 9, -1, 6),   // 1: r9 = 6 (endereço para leitura) <-- MUDANÇA AQUI (antes era 50)
+                new Word(Opcode.SYSCALL, -1, -1, -1), // 2: Chama SYSCALL
+                new Word(Opcode.STOP, -1, -1, -1), // 3: Nunca deveria chegar aqui
+                new Word(Opcode.DATA, -1, -1, 0) // 4: Posição para o dado (endereço lógico 4)
             }
         );
+        // Total de 5 palavras. O endereço 6 ainda está fora.
+        // Se a instrução LDD/STD se refere a um endereço *dentro* do programa, ela pode ser usada.
+        // Se a posição para o dado deve ser acessada por IN/OUT, ela também precisa estar alocada.
+        // Vamos garantir que o programa seja grande o suficiente ou que o endereço esteja na área alocada.
 
-        boolean criado = gp.criaProcesso(progSyscall);
+        // Melhor ainda, vamos alocar o programa com um tamanho que inclua o endereço de dado
+        // Programas no Programs.java são carregados com o image.length.
+        // Para este programa, o array tem 5 palavras, então o endereço 6 é inválido.
+        // Vamos mudar para um endereço que seja parte do programa, ou aumentar o programa.
+        // Para simplificar, vamos usar um endereço lógico que esteja dentro das palavras do programa.
+
+        // MUDANÇA AQUI: Ajustar o endereço para estar dentro das palavras do programa
+        // (0-4 para um programa de 5 palavras). Vamos usar o endereço lógico 4.
+        Program progSyscallUnblock = new Program("progToBlock", // Renomeei para evitar confusão de nome
+            new Word[]{
+                new Word(Opcode.LDI, 8, -1, 1),    // 0: r8 = 1 (IN)
+                new Word(Opcode.LDI, 9, -1, 4),   // 1: r9 = 4 (endereço para leitura) <-- MUDANÇA AQUI (antes era 50)
+                new Word(Opcode.SYSCALL, -1, -1, -1), // 2: Chama SYSCALL
+                new Word(Opcode.STOP, -1, -1, -1), // 3: Nunca deveria chegar aqui
+                new Word(Opcode.DATA, -1, -1, 0) // 4: Posição para o dado (endereço lógico 4) <-- AGORA VÁLIDO PARA DADO
+            }
+        );
+        // O programa agora tem 5 palavras (índices 0 a 4). O endereço 4 é válido.
+
+        // Use progSyscallUnblock na linha abaixo
+        boolean criado = gp.criaProcesso(progSyscallUnblock); // Use o novo programa
+
         if (!criado) {
             System.out.println("FALHA: Não foi possível criar o processo para testProcessUnblockedFromIO.");
             System.out.println("--- Fim do teste: testProcessUnblockedFromIO ---\n");
