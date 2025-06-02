@@ -20,7 +20,7 @@ public class Sistema {
 		so = new SO(hw);
 		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
 		progs = new Programs();
-		gm =  new GM(hw.mem, tamMem);
+		gm =  new GM(hw.mem, 10);
 		gp = new GP(hw, gm);
 	}
 	public void menu(){
