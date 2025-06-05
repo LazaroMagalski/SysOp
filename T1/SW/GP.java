@@ -7,8 +7,11 @@ import java.util.Scanner;
 
 import HW.HW;
 import HW.CPU.CPU;
+import HW.CPU.Opcode;
 import HW.Memory.Memory;
+import HW.Memory.Word;
 import VM.Program;
+import VM.Programs;
 
 public class GP {
 
@@ -17,6 +20,7 @@ public class GP {
         public int[] tabPag;
         public int pc;
         public boolean ready;
+        public int[] regs;
 
         public PCB(){
             id = pcbId;
@@ -24,6 +28,7 @@ public class GP {
             tabPag = new int[0];
             pc = 0;
             ready = true;
+            regs = new int[10];
         }
 
     }
@@ -32,9 +37,10 @@ public class GP {
     private GM gm;
     private CPU cpu;
     public LinkedList<PCB> pcbList;
+    public PCB nopPCB;
     public int procExec;
     public Memory memory;
-    private Scheduler scheduler;
+    public Scheduler scheduler;
     
     public GP(HW hw, GM gm){
         this.cpu = hw.cpu;
@@ -42,6 +48,13 @@ public class GP {
         this.pcbList = new LinkedList<>();
         this.procExec = 0;
         this.scheduler = new Scheduler(this, hw, pcbList);
+
+        int[] alocacao = gm.aloca(1);
+        nopPCB = new PCB();
+        nopPCB.tabPag = alocacao;
+        gm.carregarPrograma(new Word[]{
+                new Word(Opcode.NOP, 0, 0, 0)   
+            }, alocacao);
     }
 
     public boolean criaProcesso(Program program) {
@@ -94,13 +107,23 @@ public class GP {
         procExec = id_processo;
         cpu.setContext(pcb.pc);
         cpu.updateMMU(pcb.tabPag);
-        cpu.run(-1);
+        //cpu.run();
 
     }
 
     public void executarTodosProcessos() {
-        while (!pcbList.isEmpty()) {
-            scheduler.schedule();
+        while (pcbList.size() > 0) {
+            scheduler.schedule(nopPCB);
+            boolean running = false;
+            for (var pcb : pcbList) {
+                if (pcb.ready) {
+                    running = true;
+                    break;
+                }
+            }
+            if (!running) {
+                break;
+            }
         }
     }
 

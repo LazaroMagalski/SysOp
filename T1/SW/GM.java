@@ -20,7 +20,7 @@ public class GM {
 		tamPag = _tamPag;
 		this.frames = tamMem / tamPag;
 		freeFrames = new Stack<>();
-		for (int i = frames-1; i >= 0; i--) {
+		for (int i = frames-1; i >= 0; i -= 2) {
 			freeFrames.push(i);
 		}
 	}

@@ -1,20 +1,19 @@
 package HW.CPU;
-import  HW.CPU.*;
-import HW.Memory.Memory;
+import  HW.Memory.Memory;
 import HW.Memory.Word;
 import SW.GM;
 import SW.InterruptHandling;
 import SW.SysCallHandling;
 import SW.Utilities;
 
-public class CPU {
+public class CPU implements Runnable {
     private int maxInt; // valores maximo e minimo para inteiros nesta cpu
     private int minInt;
                         // CONTEXTO da CPU ...
     public int pc;     // ... composto de program counter,
     public Word ir;    // instruction register,
     public int[] reg;  // registradores da CPU
-    private Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
+    public Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
                         // FIM CONTEXTO DA CPU: tudo que precisa sobre o estado de um processo para
                         // executa-lo
                         // nas proximas versoes isto pode modificar
@@ -90,10 +89,11 @@ public class CPU {
         this.tabPag = tabPag;
     }
 
-    public void run(int nr_intrs) {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
+    @Override
+    public void run() {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
                                                       // esta devidamente setado
-        cpuStop = false;
-        while (!cpuStop && (nr_intrs > 0 || nr_intrs == -1)) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
+
+        while (true) {      // ciclo de instrucoes. acaba cfe resultado da exec da instrucao, veja cada caso.
 
             // --------------------------------------------------------------------------------------------------
             // FASE DE FETCH
@@ -280,6 +280,9 @@ public class CPU {
                         cpuStop = true;
                         break;
 
+                    case NOP:
+                        break;
+
                     // Inexistente
                     default:
                         irpt = Interrupts.intInstrucaoInvalida;
@@ -291,9 +294,6 @@ public class CPU {
             if (irpt != Interrupts.noInterrupt) { // existe interrupção
                 ih.handle(irpt);                  // desvia para rotina de tratamento - esta rotina é do SO
                 cpuStop = true;                   // nesta versao, para a CPU
-            }
-            if (nr_intrs != -1) {
-                nr_intrs -= 1;
             }
         } // FIM DO CICLO DE UMA INSTRUÇÃO
     }
