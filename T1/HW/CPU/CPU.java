@@ -316,17 +316,18 @@ public class CPU {
     // MODIFICADO: A logica principal de execucao da CPU para uma fatia de tempo
     // Este metodo e chamado internamente pela CPU Thread
     private void executeCurrentProcessSlice(int fatiaDeTempo) {
-        cpuStop = false; // Reseta a flag de parada da CPU para a nova fatia
-        irpt = Interrupts.noInterrupt; // Reseta interrupção para a nova fatia
+        cpuStop = false;
+        irpt = Interrupts.noInterrupt;
         int instrucoesExecutadas = 0;
 
         while (!cpuStop && irpt == Interrupts.noInterrupt && instrucoesExecutadas < fatiaDeTempo) {
             // FASE DE FETCH
-            if (!legal(GM.tradutor(pc, tabPag, this.gp.gm.tamPag))) { // pc invalido
+            // Certifique-se de que a tradução de endereço usa o tamPag
+            if (!legal(GM.tradutor(pc, tabPag, this.gp.gm.tamPag))) {
                 irpt = Interrupts.intEnderecoInvalido;
                 break;
             }
-            ir = m.pos[GM.tradutor(pc, tabPag, this.gp.gm.tamPag)];
+            ir = m.pos[GM.tradutor(pc, tabPag, this.gp.gm.tamPag)]; // Lendo a instrução do endereço físico
 
             if (debug) {
                 System.out.print("                                             regs: ");
@@ -337,12 +338,138 @@ public class CPU {
             }
             if (debug) {
                 System.out.print("                      pc: " + pc + "       exec: ");
-                u.dump(ir);
+                u.dump(ir); // Este dump mostra a instrução corretamente lida
             }
 
             // FASE DE EXECUCAO DA INSTRUCAO CARREGADA NO ir
             switch (ir.opc) {
-                // ... (TODAS AS INSTRUÇÕES DO SEU SWITCH CASE) ...
+                // Instrucoes de Busca e Armazenamento em Memoria
+                case LDI: // Rd ← k
+                    reg[ir.ra] = ir.p;
+                    pc++;
+                    break;
+                case LDD: // Rd <- [A]
+                    if (legal(GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag))) { // Passa tamPag
+                        reg[ir.ra] = m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p; // Passa tamPag
+                        pc++;
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case LDX: // RD <- [RS] // NOVA
+                    if (legal(GM.tradutor(reg[ir.rb], tabPag, this.gp.gm.tamPag))) { // Passa tamPag
+                        reg[ir.ra] = m.pos[GM.tradutor(reg[ir.rb], tabPag, this.gp.gm.tamPag)].p; // Passa tamPag
+                        pc++;
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case STD: // [A] ← Rs
+                    if (legal(GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag))) { // Passa tamPag
+                        m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].opc = Opcode.DATA; // Passa tamPag
+                        m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p = reg[ir.ra]; // Passa tamPag
+                        pc++;
+                        if (debug) {
+                            System.out.print("                                  ");
+                            u.dump(ir.p,ir.p+1);
+                        }
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case STX: // [Rd] ←Rs
+                    if (legal(GM.tradutor(reg[ir.ra], tabPag, this.gp.gm.tamPag))) { // Passa tamPag
+                        m.pos[GM.tradutor(reg[ir.ra], tabPag, this.gp.gm.tamPag)].opc = Opcode.DATA; // Passa tamPag
+                        m.pos[GM.tradutor(reg[ir.ra], tabPag, this.gp.gm.tamPag)].p = reg[ir.rb]; // Passa tamPag
+                        pc++;
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case MOVE: // RD <- RS
+                    reg[ir.ra] = reg[ir.rb];
+                    pc++;
+                    break;
+                // Instrucoes Aritmeticas
+                case ADD: // Rd ← Rd + Rs
+                    if (!testOverflow(reg[ir.ra] + reg[ir.rb])) { irpt = Interrupts.intOverflow; break; }
+                    reg[ir.ra] = reg[ir.ra] + reg[ir.rb];
+                    pc++;
+                    break;
+                case ADDI: // Rd ← Rd + k
+                    if (!testOverflow(reg[ir.ra] + ir.p)) { irpt = Interrupts.intOverflow; break; }
+                    reg[ir.ra] = reg[ir.ra] + ir.p;
+                    pc++;
+                    break;
+                case SUB: // Rd ← Rd - Rs
+                    if (!testOverflow(reg[ir.ra] - reg[ir.rb])) { irpt = Interrupts.intOverflow; break; }
+                    reg[ir.ra] = reg[ir.ra] - reg[ir.rb];
+                    pc++;
+                    break;
+                case SUBI: // RD <- RD - k // NOVA
+                    if (!testOverflow(reg[ir.ra] - ir.p)) { irpt = Interrupts.intOverflow; break; }
+                    reg[ir.ra] = reg[ir.ra] - ir.p;
+                    pc++;
+                    break;
+                case MULT: // Rd <- Rd * Rs
+                    if (!testOverflow(reg[ir.ra] * reg[ir.rb])) { irpt = Interrupts.intOverflow; break; }
+                    reg[ir.ra] = reg[ir.ra] * reg[ir.rb];
+                    pc++;
+                    break;
+
+                // Instrucoes JUMP
+                case JMP: // PC <- k
+                    pc = ir.p;
+                    break;
+                case JMPIM: // PC <- [A]
+                    if (legal(ir.p)) { // Verifica se A é legal
+                        pc = m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p; // Passa tamPag
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case JMPIG: // If Rc > 0 Then PC ← Rs Else PC ← PC +1
+                    if (reg[ir.rb] > 0) { pc = reg[ir.ra]; } else { pc++; }
+                    break;
+                case JMPIGK: // If RC > 0 then PC <- k else PC++
+                    if (reg[ir.rb] > 0) { pc = ir.p; } else { pc++; }
+                    break;
+                case JMPILK: // If RC < 0 then PC <- k else PC++
+                    if (reg[ir.rb] < 0) { pc = ir.p; } else { pc++; }
+                    break;
+                case JMPIEK: // If RC = 0 then PC <- k else PC++
+                    if (reg[ir.rb] == 0) { pc = ir.p; } else { pc++; }
+                    break;
+                case JMPIL: // if Rc < 0 then PC <- Rs Else PC <- PC +1
+                    if (reg[ir.rb] < 0) { pc = reg[ir.ra]; } else { pc++; }
+                    break;
+                case JMPIE: // If Rc = 0 Then PC <- Rs Else PC <- PC +1
+                    if (reg[ir.rb] == 0) { pc = reg[ir.ra]; } else { pc++; }
+                    break;
+                case JMPIGM: // If RC > 0 then PC <- [A] else PC++
+                    if (legal(ir.p)){
+                        if (reg[ir.rb] > 0) {
+                            pc = m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p; // Passa tamPag
+                        } else { pc++; }
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case JMPILM: // If RC < 0 then PC <- [A] else PC++
+                    if (legal(ir.p)) {
+                        if (reg[ir.rb] < 0) {
+                            pc = m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p; // Passa tamPag
+                        } else { pc++; }
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case JMPIEM: // If RC = 0 then PC <- [A] else PC++
+                    if (legal(ir.p)) {
+                        if (reg[ir.rb] == 0) {
+                            pc = m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p; // Passa tamPag
+                        } else { pc++; }
+                    } else { irpt = Interrupts.intEnderecoInvalido; }
+                    break;
+                case JMPIGT: // If RS>RC then PC <- k else PC++
+                    if (reg[ir.ra] > reg[ir.rb]) { pc = ir.p; } else { pc++; }
+                    break;
+
+                // Casos especiais: DATA e ___
+                case DATA: // pc está sobre área supostamente de dados
+                    irpt = Interrupts.intInstrucaoInvalida;
+                    break;
+                case ___: // Opcode nulo, significa posição de memória não inicializada ou vazia
+                    irpt = Interrupts.intInstrucaoInvalida;
+                    break;
+
+                // Chamadas de sistema
                 case SYSCALL:
                     sysCall.handle();
                     pc++;
@@ -354,7 +481,7 @@ public class CPU {
                     cpuStop = true;
                     break;
 
-                default:
+                default: // Este default só deve ser alcançado se um novo opcode for adicionado ao enum, mas não ao switch
                     irpt = Interrupts.intInstrucaoInvalida;
                     break;
             }
