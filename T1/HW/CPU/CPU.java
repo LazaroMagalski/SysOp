@@ -114,11 +114,11 @@ public class CPU {
                 while (!cpuStop && irpt == Interrupts.noInterrupt && instrucoesExecutadas < fatiaDeTempo) {
 
                     // FASE DE FETCH
-                    if (!legal(GM.tradutor(pc, tabPag))) { // pc invalido
+                    if (!legal(GM.tradutor(pc, tabPag, this.gp.gm.tamPag))) { // pc invalido
                         irpt = Interrupts.intEnderecoInvalido; // Liga interrupção
                         break; // Sai do ciclo, interrupção será tratada
                     }
-                    ir = m.pos[GM.tradutor(pc, tabPag)];
+                    ir = m.pos[GM.tradutor(pc, tabPag, this.gp.gm.tamPag)];
 
                     if (debug) {
                         System.out.print("                                             regs: ");
@@ -140,21 +140,21 @@ public class CPU {
                             pc++;
                             break;
                         case LDD:
-                            if (legal(GM.tradutor(ir.p, tabPag))) {
-                                reg[ir.ra] = m.pos[GM.tradutor(ir.p, tabPag)].p;
+                            if (legal(GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag))) {
+                                reg[ir.ra] = m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p;
                                 pc++;
                             } else { irpt = Interrupts.intEnderecoInvalido; } // Interrupção em LDD
                             break;
                         case LDX:
-                            if (legal(GM.tradutor(reg[ir.rb], tabPag))) {
-                                reg[ir.ra] = m.pos[GM.tradutor(reg[ir.rb], tabPag)].p;
+                            if (legal(GM.tradutor(reg[ir.rb], tabPag, this.gp.gm.tamPag))) {
+                                reg[ir.ra] = m.pos[GM.tradutor(reg[ir.rb], tabPag, this.gp.gm.tamPag)].p;
                                 pc++;
                             } else { irpt = Interrupts.intEnderecoInvalido; } // Interrupção em LDX
                             break;
                         case STD:
-                            if (legal(GM.tradutor(ir.p, tabPag))) {
-                                m.pos[GM.tradutor(ir.p, tabPag)].opc = Opcode.DATA;
-                                m.pos[GM.tradutor(ir.p, tabPag)].p = reg[ir.ra];
+                            if (legal(GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag))) {
+                                m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].opc = Opcode.DATA;
+                                m.pos[GM.tradutor(ir.p, tabPag, this.gp.gm.tamPag)].p = reg[ir.ra];
                                 pc++;
                                 if (debug) {
                                     System.out.print("                                  ");
@@ -163,9 +163,9 @@ public class CPU {
                             } else { irpt = Interrupts.intEnderecoInvalido; } // Interrupção em STD
                             break;
                         case STX:
-                            if (legal(GM.tradutor(reg[ir.ra], tabPag))) {
-                                m.pos[GM.tradutor(reg[ir.ra], tabPag)].opc = Opcode.DATA;
-                                m.pos[GM.tradutor(reg[ir.ra], tabPag)].p = reg[ir.rb];
+                            if (legal(GM.tradutor(reg[ir.ra], tabPag, this.gp.gm.tamPag))) {
+                                m.pos[GM.tradutor(reg[ir.ra], tabPag, this.gp.gm.tamPag)].opc = Opcode.DATA;
+                                m.pos[GM.tradutor(reg[ir.ra], tabPag, this.gp.gm.tamPag)].p = reg[ir.rb];
                                 pc++;
                             } else { irpt = Interrupts.intEnderecoInvalido; } // Interrupção em STX
                             break;
@@ -290,5 +290,86 @@ public class CPU {
 
     public void setGP(GP _gp) {
         this.gp = _gp; // Define a referência ao GP para notificar o Scheduler
+    }
+
+    // NOVO METODO: O loop principal da CPU Thread
+    // Esta Thread ficara esperando por trabalho do Scheduler
+    public void startCPUThread() {
+        new Thread(() -> {
+            while (true) {
+                synchronized (cpuMonitor) {
+                    try {
+                        cpuMonitor.wait(); // CPU espera ser acordada pelo Scheduler
+                        // Quando acordada, o contexto já foi carregado pelo Scheduler
+                        // Agora, execute a fatia de tempo
+                        executeCurrentProcessSlice(2); // Executa uma fatia de 2 instruções
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.err.println("CPU thread interrupted: " + e.getMessage());
+                        break; // Sai do loop se a thread for interrompida
+                    }
+                } // FIM DO SYNC
+            }
+        }, "CPU-Core-Thread").start(); // Inicia a thread da CPU
+    }
+
+    // MODIFICADO: A logica principal de execucao da CPU para uma fatia de tempo
+    // Este metodo e chamado internamente pela CPU Thread
+    private void executeCurrentProcessSlice(int fatiaDeTempo) {
+        cpuStop = false; // Reseta a flag de parada da CPU para a nova fatia
+        irpt = Interrupts.noInterrupt; // Reseta interrupção para a nova fatia
+        int instrucoesExecutadas = 0;
+
+        while (!cpuStop && irpt == Interrupts.noInterrupt && instrucoesExecutadas < fatiaDeTempo) {
+            // FASE DE FETCH
+            if (!legal(GM.tradutor(pc, tabPag, this.gp.gm.tamPag))) { // pc invalido
+                irpt = Interrupts.intEnderecoInvalido;
+                break;
+            }
+            ir = m.pos[GM.tradutor(pc, tabPag, this.gp.gm.tamPag)];
+
+            if (debug) {
+                System.out.print("                                             regs: ");
+                for (int i = 0; i < 10; i++) {
+                    System.out.print(" r[" + i + "]:" + reg[i]);
+                }
+                System.out.println();
+            }
+            if (debug) {
+                System.out.print("                      pc: " + pc + "       exec: ");
+                u.dump(ir);
+            }
+
+            // FASE DE EXECUCAO DA INSTRUCAO CARREGADA NO ir
+            switch (ir.opc) {
+                // ... (TODAS AS INSTRUÇÕES DO SEU SWITCH CASE) ...
+                case SYSCALL:
+                    sysCall.handle();
+                    pc++;
+                    cpuStop = true; // Sinaliza para a CPU parar de executar esta fatia de tempo
+                    break;
+
+                case STOP:
+                    sysCall.stop(debug);
+                    cpuStop = true;
+                    break;
+
+                default:
+                    irpt = Interrupts.intInstrucaoInvalida;
+                    break;
+            }
+            instrucoesExecutadas++;
+        } // FIM DO CICLO DE INSTRUÇÕES DA FATIA
+
+        // VERIFICA INTERRUPÇÃO !!! - TERCEIRA FASE DO CICLO DE INSTRUÇÕES
+        if (irpt != Interrupts.noInterrupt) {
+            ih.handle(irpt);
+            cpuStop = true; // Interrupção fatal, para a CPU para este processo.
+        }
+
+        // Após a fatia de tempo, SYSCALL, STOP ou interrupção fatal,
+        // a CPU informa ao Scheduler que terminou sua rodada.
+        // Isso permite que o Scheduler salve o contexto e escolha o próximo processo.
+        gp.notifyScheduler(); // Notifica o Scheduler que a CPU terminou sua fatia
     }
 }

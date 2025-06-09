@@ -34,7 +34,7 @@ public class GP {
     }
 
     private int pcbId;
-    private GM gm;
+    public GM gm;
     private CPU cpu;
     public LinkedList<PCB> pcbList;
     public LinkedList<PCB> blockedPcbList;
@@ -173,8 +173,8 @@ public class GP {
        System.out.println("PCB PC: "+pcb.pc);
        System.out.println("TabPag");
        for(int i=0; i < pcb.tabPag.length; i++){
-            for (int j=0; j < GM.tamPag; j++) {
-                System.out.println(gm.memory.pos[GM.tradutor((i*GM.tamPag)+j, pcb.tabPag)]);
+            for (int j=0; j < gm.tamPag; j++) {
+                System.out.println(gm.memory.pos[GM.tradutor((i*gm.tamPag)+j, pcb.tabPag, gm.tamPag)]);
             }
        }
     }
@@ -191,7 +191,7 @@ public class GP {
     }
 
     public GM getGm() {
-       return gm;
+       return this.gm;
     }
     
     public void blockProcess(PCB pcb) {

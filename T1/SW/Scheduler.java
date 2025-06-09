@@ -23,11 +23,21 @@ public class Scheduler {
     }
 
     public void schedule() {
-        // 1. Limpeza de processos finalizados/interrompidos fatalmente na CPU
-        //    Esta lógica foi movida para depois da CPU executar,
-        //    pois o Scheduler precisa do estado final da CPU.
+        // Se não há processos prontos E não há processos bloqueados (aguardando I/O),
+        // o Scheduler espera por novos processos ou eventos de desbloqueio.
+        if (readyQueue.isEmpty() && blockedQueue.isEmpty()) {
+            synchronized (gp.schedulerMonitor) { // Sincroniza no monitor do Scheduler
+                try {
+                    System.out.println("Scheduler: Nenhuma tarefa. Aguardando novos processos ou I/O.");
+                    gp.schedulerMonitor.wait(); // Scheduler espera
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println("Scheduler thread interrupted: " + e.getMessage());
+                    return; // Sai se for interrompido
+                }
+            }
+        }
 
-        // 2. Escolher o próximo processo para executar
         PCB chosenPCB = null;
         if (!readyQueue.isEmpty()) {
             chosenPCB = readyQueue.poll();
@@ -42,8 +52,6 @@ public class Scheduler {
                 System.arraycopy(chosenPCB.regs, 0, hw.cpu.reg, 0, chosenPCB.regs.length);
                 hw.cpu.irpt = Interrupts.noInterrupt; // Limpa qualquer interrupção anterior
 
-                // A CPU já está rodando em sua própria Thread (ver Sistema.java).
-                // Precisamos apenas acordá-la e esperar que ela termine sua fatia.
                 gp.wakeCPU(); // Acorda a CPU para executar este processo
 
                 // Scheduler aguarda a CPU terminar sua fatia de tempo ou um evento
@@ -60,32 +68,41 @@ public class Scheduler {
                 // O contexto (PC e regs) já foi salvo no PCB pela CPU antes de notificar.
 
                 // Verifica o estado final do processo que acabou de rodar
-                if (hw.cpu.irpt != Interrupts.noInterrupt) { // Se houve uma interrupção
+                if (hw.cpu.irpt != Interrupts.noInterrupt) {
                     System.out.println("Scheduler: Processo " + chosenPCB.id + " interrompido por: " + hw.cpu.irpt);
                     if (hw.cpu.irpt == Interrupts.intEnderecoInvalido ||
                         hw.cpu.irpt == Interrupts.intInstrucaoInvalida ||
-                        hw.cpu.irpt == Interrupts.intOverflow) { // Interrupções fatais
+                        hw.cpu.irpt == Interrupts.intOverflow) {
                         System.out.println("Scheduler: Processo " + chosenPCB.id + " finalizado devido a interrupção fatal.");
-                        gp.desalocaProcesso(chosenPCB.id); // Finaliza e desaloca
+                        gp.desalocaProcesso(chosenPCB.id);
                     }
-                    // Interrupções de I/O (intIOCompleta) são tratadas por InterruptHandling
-                    // e movem o PCB para READY antes do scheduler rodar.
-                } else if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP) { // Se a instrução atual é STOP
+                } else if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag, this.gp.gm.tamPag)].opc == Opcode.STOP) {
                     System.out.println("Scheduler: Processo " + chosenPCB.id + " encontrou STOP e será finalizado.");
-                    gp.desalocaProcesso(chosenPCB.id); // Finaliza e desaloca
+                    gp.desalocaProcesso(chosenPCB.id);
                 } else if (chosenPCB.state == State.RUNNING) { // Se ainda estava RUNNING (preempção por tempo)
-                    chosenPCB.state = State.READY; // Volta para READY
-                    readyQueue.add(chosenPCB); // Adiciona de volta na fila de prontos
+                    chosenPCB.state = State.READY;
+                    readyQueue.add(chosenPCB);
                     System.out.println("Scheduler: Processo " + chosenPCB.id + " preemptado e movido para READY.");
                 }
-                // Se o estado do chosenPCB já mudou para BLOCKED pelo SysCallHandling,
-                // ele já foi movido para blockedQueue e não será adicionado de volta aqui.
+            }
+        } else if (!blockedQueue.isEmpty()) {
+            System.out.println("Scheduler: Fila de prontos vazia, mas há processos bloqueados. Aguardando I/O.");
+            gp.procExec = -1; // CPU ociosa
+            // O Scheduler irá esperar novamente se a fila de prontos permanecer vazia após esta rodada.
+            // A notificação de I/O completa (Interrupts.intIOCompleta) trará processos para a readyQueue.
+            synchronized (gp.schedulerMonitor) { // Sincroniza no monitor do Scheduler
+                try {
+                    gp.schedulerMonitor.wait(); // Scheduler espera por I/O completo ou novos processos
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    System.err.println("Scheduler thread interrupted: " + e.getMessage());
+                }
             }
         } else {
-            System.out.println("Scheduler: Fila de prontos vazia. CPU ociosa.");
-            gp.procExec = -1; // Sinaliza que nenhum processo está executando
-            // O Scheduler agora também precisa esperar se não há processos para executar.
-            // Isso será tratado no loop principal do SO/Sistema.
+            // Este bloco é alcançado se readyQueue estiver vazia mas blockedQueue também estiver vazia.
+            // O wait inicial no `schedule()` já cobre isso.
+            // Este `else` pode ser removido, ou apenas garantir que o `procExec` está em -1.
+            gp.procExec = -1; // CPU ociosa
         }
     }
 }

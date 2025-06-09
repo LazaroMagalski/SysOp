@@ -10,17 +10,17 @@ import HW.Memory.Word;
 public class GM {
 	public Memory memory;
 	public int tamMem;
-	public static int tamPag;
+	public int tamPag;
 	public int frames;
 	private Stack<Integer> freeFrames;
 
 	public GM(Memory memory, int _tamPag) {
 		this.memory = memory;
 		this.tamMem = memory.pos.length;
-		tamPag = _tamPag;
-		this.frames = tamMem / tamPag;
+		this.tamPag = _tamPag;
+		this.frames = this.tamMem / this.tamPag;
 		freeFrames = new Stack<>();
-		for (int i = frames-1; i >= 0; i -= 2) {
+		for (int i = frames-1; i >= 0; i--) { // i-- para incluir todos os frames
 			freeFrames.push(i);
 		}
 	}
@@ -62,33 +62,47 @@ public class GM {
 	}
 
 	public void carregarPrograma (Word[] programa, int[] tabelaPaginas) {
-		// Carrega o programa na memória
-		for (int i = 0; i < programa.length;i++) {
-
-			int posicaoTransladada = tradutor(i, tabelaPaginas);
-			memory.pos[posicaoTransladada].opc = programa[i].opc;
-			memory.pos[posicaoTransladada].p = programa[i].p;
-			memory.pos[posicaoTransladada].ra = programa[i].ra;
-			memory.pos[posicaoTransladada].rb = programa[i].rb;
-
-		}
+		System.out.println("GM.carregarPrograma: Carregando programa de " + programa.length + " palavras.");
+        for (int i = 0; i < programa.length;i++) {
+            // Chamando o tradutor estático com o tamPag da instância
+            int posicaoTransladada = GM.tradutor(i, tabelaPaginas, this.tamPag); // <--- PASSA this.tamPag
+            
+			if (posicaoTransladada != -1) {
+                System.out.println("  Carregando: Logico " + i + " -> Fisico " + posicaoTransladada +
+                                   " : " + programa[i].opc + " " + programa[i].ra + " " + programa[i].rb + " " + programa[i].p);
+                
+				memory.pos[posicaoTransladada].opc = programa[i].opc;
+                memory.pos[posicaoTransladada].p = programa[i].p;
+                memory.pos[posicaoTransladada].ra = programa[i].ra;
+                memory.pos[posicaoTransladada].rb = programa[i].rb;
+            } else {
+                System.err.println("  Erro GM.carregarPrograma: Não foi possível carregar a palavra " + i +
+                                   " do programa. Endereço lógico inválido após tradução.");
+            }
+        }
+        System.out.println("GM.carregarPrograma: Fim do carregamento.");
 	}
 
-	public static int tradutor(int enderecoLogico, int[] tabelaPaginas){
-		int numPagina = enderecoLogico / tamPag; // Pega o número da página virtual
-		int offset = enderecoLogico % tamPag; // Descobre o deslocamento dentro da página
+	public static int tradutor(int enderecoLogico, int[] tabelaPaginas, int tamPaginaDoProcesso){
+		int numPagina = enderecoLogico / tamPaginaDoProcesso;
+		int offset = enderecoLogico % tamPaginaDoProcesso;
 
-		if (enderecoLogico < 0 || tabelaPaginas == null) {	// Verifica a validade dos argumentos fornecidos
-			System.out.println("Endereço ou tabela inválidos");
-		}
-
-		if (numPagina >= tabelaPaginas.length || tabelaPaginas[numPagina] == -1) {
-			System.out.println("Página "+ 1 + " não existe/não foi alocada na memória RAM");
+		if (enderecoLogico < 0 || tabelaPaginas == null) {
+            System.err.println("Erro GM.tradutor: Endereço ou tabela de páginas inválidos."); // Saída de erro mais consistente
 			return -1;
 		}
 
-		int numFrame = tabelaPaginas[numPagina]; // Salva o frame físico correspondente
-		int enderecoFisico = (numFrame * tamPag) + offset; // Descobre o endereco físico
+		if (tabelaPaginas == null || numPagina >= tabelaPaginas.length || tabelaPaginas[numPagina] == -1) {
+			System.err.println("Erro GM.tradutor: Página " + numPagina + " para endereço lógico " + enderecoLogico +
+							" não existe/não foi alocada na memória RAM ou tabela de páginas inválida.");
+			return -1;
+		}
+
+		int numFrame = tabelaPaginas[numPagina];
+		int enderecoFisico = (numFrame * tamPaginaDoProcesso) + offset; // Usa o tamPag passado
+
+		System.out.println("GM.tradutor: Logico " + enderecoLogico + " (Pag " + numPagina + ", Offset " + offset +
+		                   ") -> Fisico " + enderecoFisico + " (Frame " + numFrame + ")");
 
 		return enderecoFisico;
 	}

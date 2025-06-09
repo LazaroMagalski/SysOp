@@ -25,65 +25,33 @@ public class Sistema {
 		so = new SO(hw, gp); // FEAT: Passa o GP para o SO
 		hw.cpu.setUtilities(so.utils);
 		
-		// Inicializa a Thread da CPU
-        // A CPU.run() espera uma fatia de tempo. A CPU Thread sempre roda "aguardando"
-        // que o Scheduler a acorde para processar o próximo processo.
-        cpuThread = new Thread(() -> { // Cria a thread da CPU
-            while (true) { // Loop eterno para a CPU
-                // A CPU aguarda ser notificada para executar uma fatia de tempo
-                hw.cpu.run(2); // Passa a fatia de tempo (2 instruções)
-            }
-        }, "CPU-Thread"); // Nome da thread
-        cpuThread.setDaemon(true); // Define como daemon para que não impeça o programa de terminar
+		// A CPU inicia sua própria thread agora
+        hw.cpu.startCPUThread(); // Chama o método para iniciar a thread da CPU
 
         // Inicializa a Thread do Shell
-        shellThread = new Thread(() -> menu(), "Shell-Thread"); // Cria a thread do Shell
-        shellThread.setDaemon(true); // Define como daemon
+        shellThread = new Thread(() -> menu(), "Shell-Thread");
+        shellThread.setDaemon(true);
 
 		progs = new Programs();
 	}
 
 	public void start() {
-        cpuThread.start(); // Inicia a thread da CPU
         shellThread.start(); // Inicia a thread do Shell
 
-        // O loop principal do SO (Scheduler) agora roda em uma thread separada ou na main thread,
-        // mas o Scheduler chamará o GP para gerenciar a execução da CPU.
-        // Se o Scheduler não tiver mais processos, ele vai esperar.
-        // O loop principal do Scheduler também será eterno.
-        // Vamos rodar o scheduler em um loop eterno aqui na main thread por enquanto.
-        // Posteriormente, pode ser uma thread dedicada para o Scheduler.
+        // O loop principal do Scheduler agora roda na main thread
         while (true) {
-            // Se houver processos prontos para executar, o Scheduler os escalona.
-            // Se não houver, o Scheduler vai esperar (via wait() no monitor do GP).
-            // O Scheduler vai tentar agendar um processo. Se não houver nenhum, ele esperará.
-            if (!gp.pcbList.isEmpty() || !gp.blockedPcbList.isEmpty()) {
-                gp.getScheduler().schedule(); // Chama o escalonador para gerenciar a fila de prontos
-            } else {
-                // Se não há processos, o Scheduler principal (esta thread) pode esperar.
-                // Isso evita que o loop gire infinitamente sem trabalho.
-                // O Shell criará novos processos e notificará o Scheduler.
-                // No futuro, quando o Shell criar um processo, ele deveria notificar o schedulerMonitor.
-                synchronized (gp.schedulerMonitor) { // Sincroniza no monitor do Scheduler
-                    try {
-                        System.out.println("Sistema: Sem processos ativos para escalar. Aguardando...");
-                        gp.schedulerMonitor.wait(); // Aguarda novos processos ou eventos de I/O
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        System.err.println("Sistema thread interrupted: " + e.getMessage());
-                    }
-                }
-            }
+            // O Scheduler vai tentar agendar um processo.
+            // Ele vai esperar se não houver nenhum ou se o último processo está bloqueado.
+            gp.getScheduler().schedule(); // Chama o escalonador para gerenciar a fila de prontos
 
             // Pequeno atraso para não consumir CPU em loop muito apertado
             try {
-                Thread.sleep(100); // 100ms de "tempo de ócio" para a main thread
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
     }
-
 
     public void menu(){ // Mantenha o método menu como estava, mas agora ele roda em uma thread
         Scanner sc = new Scanner(System.in);

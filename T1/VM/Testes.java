@@ -48,10 +48,10 @@ public class Testes {
         int tamMemoria = 1024;
         Sistema s = new Sistema(tamMemoria); // O Sistema agora inicializa GM com tamPag=10
 
-        if (GM.tamPag == 10) {
+        if (s.gm.tamPag == 10) {
             System.out.println("SUCESSO: GM.tamPag foi inicializado corretamente como 10 no Sistema.");
         } else {
-            System.out.println("FALHA: GM.tamPag foi inicializado como " + GM.tamPag + ", esperado 10.");
+            System.out.println("FALHA: GM.tamPag foi inicializado como " + s.gm.tamPag + ", esperado 10.");
         }
         System.out.println("--- Fim do teste: testSistemaGMInitialization ---\n");
     }
@@ -67,7 +67,7 @@ public class Testes {
         System.out.println("GM stats para este teste:");
         System.out.println("  tamMem: " + gm.tamMem);
         System.out.println("  frames: " + gm.frames);
-        System.out.println("  tamPag: " + GM.tamPag); // (GM.tamPag é estático, refletirá o último GM instanciado ou o valor padrão do Sistema)
+        System.out.println("  tamPag: " + gm.tamPag); // (GM.tamPag é estático, refletirá o último GM instanciado ou o valor padrão do Sistema)
 
         int[] tabelaPaginas = gm.aloca(numPalavrasParaAlocar); // Aloca as páginas
 
@@ -89,7 +89,7 @@ public class Testes {
             // Vamos testar um cenário simples se a alocação inicial for bem-sucedida
             System.out.println("Testando tradução de endereço (exemplo):");
             int enderecoLogicoExemplo = 0; // Primeiro endereço lógico
-            int enderecoFisico = GM.tradutor(enderecoLogicoExemplo, tabelaPaginas);
+            int enderecoFisico = gm.tradutor(enderecoLogicoExemplo, tabelaPaginas, gm.tamPag);
             System.out.println("  Endereço Lógico " + enderecoLogicoExemplo + " traduz para Físico " + enderecoFisico);
             if (enderecoFisico != -1) {
                 System.out.println("  SUCESSO: Tradução de endereço retornou um valor válido.");
@@ -127,7 +127,7 @@ public class Testes {
                 System.out.println("  Tabela de Páginas do PCB: " + Arrays.toString(pcbCriado.tabPag));
                 System.out.println("  Verificando se o programa foi carregado na memória do GP.gm:");
                 for (int i = 0; i < program.image.length; i++) {
-                    int enderecoFisico = GM.tradutor(i, pcbCriado.tabPag);
+                    int enderecoFisico = GM.tradutor(i, pcbCriado.tabPag, gp.getGm().tamPag);
                     if (enderecoFisico != -1) {
                         if (gp.getGm().memory.pos[enderecoFisico].opc != program.image[i].opc ||
                             gp.getGm().memory.pos[enderecoFisico].p != program.image[i].p ||
