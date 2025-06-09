@@ -24,13 +24,13 @@ public class Scheduler {
             chosenPCB = nopPCB;
         }
 
-        if (chosenPCB.ready) {
+        if (chosenPCB.state == State.READY) {
             hw.cpu.setContext(chosenPCB.pc);
             hw.cpu.updateMMU(chosenPCB.tabPag);
             hw.cpu.reg = chosenPCB.regs;
         }
         if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP || hw.cpu.irpt != Interrupts.noInterrupt) {
-            chosenPCB.ready = false;
+            chosenPCB.state = State.RUNNING;
         }
         chosenPCB.pc = hw.cpu.pc;
         q.add(chosenPCB);
