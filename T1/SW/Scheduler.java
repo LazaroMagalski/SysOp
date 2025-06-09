@@ -4,6 +4,7 @@ import HW.CPU.Interrupts;
 import HW.CPU.Opcode;
 import HW.HW;
 import SW.GP.PCB;
+import SW.GP.State;
 import java.util.LinkedList;
 import java.util.Queue;
 
