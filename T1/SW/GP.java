@@ -1,17 +1,13 @@
 package SW;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-
-import HW.HW;
 import HW.CPU.CPU;
+import HW.CPU.Interrupts;
 import HW.CPU.Opcode;
+import HW.HW;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import VM.Program;
-import VM.Programs;
+import java.util.LinkedList;
 
 public class GP {
 
@@ -107,15 +103,19 @@ public class GP {
         procExec = id_processo;
         cpu.setContext(pcb.pc);
         cpu.updateMMU(pcb.tabPag);
+        cpu.reg = pcb.regs;
         //cpu.run();
 
     }
 
     public void executarTodosProcessos() {
         while (pcbList.size() > 0) {
-            scheduler.schedule(nopPCB);
+            cpu.irpt = Interrupts.intTimer;
             boolean running = false;
             for (var pcb : pcbList) {
+                if (pcb == null){
+                    break;
+                }
                 if (pcb.ready) {
                     running = true;
                     break;

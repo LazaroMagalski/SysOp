@@ -1,7 +1,7 @@
 package SW;
 
-import HW.HW;
 import HW.CPU.Interrupts;
+import HW.HW;
 
 public class InterruptHandling {
     private HW hw; // referencia ao hw se tiver que setar algo
@@ -16,6 +16,9 @@ public class InterruptHandling {
         // apenas avisa - todas interrupcoes neste momento finalizam o programa
         if (irpt == Interrupts.intTimer) {
             so.gp.scheduler.schedule(so.gp.nopPCB);
+        }
+        if (irpt == Interrupts.intPageFault){
+            
         }
     }
 }

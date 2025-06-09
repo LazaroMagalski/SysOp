@@ -1,12 +1,11 @@
 package SW;
 
-import java.util.Queue;
-import java.util.LinkedList;
-
-import HW.HW;
 import HW.CPU.Interrupts;
 import HW.CPU.Opcode;
-import SW.GP.*;
+import HW.HW;
+import SW.GP.PCB;
+import java.util.LinkedList;
+import java.util.Queue;
 
 public class Scheduler {
     //private GP gp;
@@ -24,6 +23,7 @@ public class Scheduler {
         if (chosenPCB == null) {
             chosenPCB = nopPCB;
         }
+
         if (chosenPCB.ready) {
             hw.cpu.setContext(chosenPCB.pc);
             hw.cpu.updateMMU(chosenPCB.tabPag);
