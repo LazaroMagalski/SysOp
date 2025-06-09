@@ -11,11 +11,17 @@ import java.util.LinkedList;
 
 public class GP {
 
+    public enum State {
+        BLOCKED, // novo estado
+        READY,   // antigo true
+        RUNNING  // antigo false
+    }
+
     public class PCB{
         public int id;
         public int[] tabPag;
         public int pc;
-        public boolean ready;
+        public State state;
         public int[] regs;
 
         public PCB(){
@@ -23,7 +29,7 @@ public class GP {
             pcbId++;
             tabPag = new int[0];
             pc = 0;
-            ready = true;
+            state = State.READY;
             regs = new int[10];
         }
 
@@ -116,7 +122,7 @@ public class GP {
                 if (pcb == null){
                     break;
                 }
-                if (pcb.ready) {
+                if (pcb.state == State.READY) {
                     running = true;
                     break;
                 }
