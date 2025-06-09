@@ -155,7 +155,7 @@ public class Testes {
         System.out.println("--- Fim do teste: testProcessCreation ---\n");
     }
 
-    // NOVO TESTE: Verifica se um processo é bloqueado corretamente ao fazer SYSCALL
+    // Verifica se um processo é bloqueado corretamente ao fazer SYSCALL
     public void testProcessBlockedOnSyscall() {
         System.out.println("--- Iniciando teste: testProcessBlockedOnSyscall ---");
         int tamMemoria = 1024;
@@ -242,7 +242,7 @@ public class Testes {
         System.out.println("--- Fim do teste: testProcessBlockedOnSyscall ---\n");
     }
 
-    // NOVO TESTE: Simula interrupção de I/O e verifica desbloqueio
+    // Simula interrupção de I/O e verifica desbloqueio
     public void testProcessUnblockedFromIO() {
         System.out.println("--- Iniciando teste: testProcessUnblockedFromIO ---");
         // PRÉ-REQUISITO: Adicione Interrupts.intIOCompleta em HW.CPU.Interrupts
@@ -357,7 +357,7 @@ public class Testes {
         System.out.println("--- Fim do teste: testProcessUnblockedFromIO ---\n");
     }
 
-    // NOVO TESTE: Verifica se um processo é finalizado corretamente ao encontrar STOP
+    // Verifica se um processo é finalizado corretamente ao encontrar STOP
     public void testProcessTerminationOnStop() {
         System.out.println("--- Iniciando teste: testProcessTerminationOnStop ---");
         int tamMemoria = 1024;
@@ -413,7 +413,7 @@ public class Testes {
         System.out.println("--- Fim do teste: testProcessTerminationOnStop ---\n");
     }
 
-    // NOVO TESTE: Verifica se um processo é finalizado em caso de interrupção fatal
+    // Verifica se um processo é finalizado em caso de interrupção fatal
     public void testProcessTerminationOnFatalInterrupt() {
         System.out.println("--- Iniciando teste: testProcessTerminationOnFatalInterrupt ---");
         int tamMemoria = 1024;
@@ -467,7 +467,7 @@ public class Testes {
         System.out.println("--- Fim do teste: testProcessTerminationOnFatalInterrupt ---\n");
     }
 
-    // NOVO TESTE: Verifica o salvamento e restauração do contexto (PC e registradores)
+    // Verifica o salvamento e restauração do contexto (PC e registradores)
     public void testContextSavingAndRestoring() {
         System.out.println("--- Iniciando teste: testContextSavingAndRestoring ---");
         int tamMemoria = 1024;
@@ -561,4 +561,7 @@ public class Testes {
         gp.desalocaProcesso(pcb1.id); // Garante a limpeza, caso o teste falhe antes
         System.out.println("--- Fim do teste: testContextSavingAndRestoring ---\n");
     }
+
+
+
 }

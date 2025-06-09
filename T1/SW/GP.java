@@ -1,12 +1,8 @@
 package SW;
 
 import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
-
 import HW.HW;
-import HW.CPU.CPU;
+import HW.CPU.CPU; // Certifique-se de importar CPU
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import VM.Program;
@@ -44,7 +40,8 @@ public class GP {
     public LinkedList<PCB> blockedPcbList;
     public int procExec;
     private Scheduler scheduler;
-    
+    public final Object schedulerMonitor = new Object(); // Objeto para wait/notify do Scheduler
+
     public GP(HW hw, GM gm){
         this.cpu = hw.cpu;
         this.gm = gm;
@@ -53,6 +50,7 @@ public class GP {
         this.blockedPcbList = new LinkedList<>();
         this.procExec = 0;
         this.scheduler = new Scheduler(this, hw, pcbList, blockedPcbList);
+        this.cpu.setGP(this); // Seta a referência do GP na CPU
     }
 
     public boolean criaProcesso(Program program) {
@@ -163,6 +161,7 @@ public class GP {
     public int getPcbId() {
         return pcbId;
     }
+
     public void dump(int id){
        PCB pcb = pcbList.get(id);
        if(pcb == null){
@@ -179,6 +178,7 @@ public class GP {
             }
        }
     }
+    
     public void dumpM(int dumpM_start,int dumpM_end){
         int dumpSize = dumpM_end - dumpM_start;
         for(int i=0; i < dumpSize; i++){
@@ -208,4 +208,19 @@ public class GP {
         System.out.println("Processo " + pcb.id + " desbloqueado e movido para READY."); // Para debug
     }
 
+    public void notifyScheduler() {
+        synchronized (schedulerMonitor) { // Sincroniza no monitor do Scheduler
+            schedulerMonitor.notify(); // Acorda o Scheduler
+        }
+    }
+
+    public void wakeCPU() {
+        synchronized (cpu.cpuMonitor) { // Sincroniza no monitor da CPU
+            cpu.cpuMonitor.notify(); // Acorda a CPU
+        }
+    }
+
+    public Scheduler getScheduler() {
+        return scheduler;
+    }
 }
