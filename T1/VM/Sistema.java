@@ -2,6 +2,7 @@ package VM;
 
 import java.util.*;
 
+import HW.Console;
 import HW.HW;
 import SW.GM;
 import SW.GP;
@@ -110,7 +111,10 @@ public class Sistema {
 		s.hw.cpu.updateMMU(s.so.gp.nopPCB.tabPag);
 		Thread th = new Thread(s.hw.cpu);
 		s.hw.cpu.setDebug(false);
+		Console c = new Console(s.hw.cpu.requests, s.so.gm, s.hw.cpu);
+		Thread cth = new Thread(c);
 		th.start();
+		cth.start();
 		s.menu();
 		//s.run();
 	}

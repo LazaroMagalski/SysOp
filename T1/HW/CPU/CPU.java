@@ -1,4 +1,9 @@
 package HW.CPU;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import  HW.CPU.*;
 import HW.Memory.Memory;
 import HW.Memory.Word;
@@ -8,6 +13,15 @@ import SW.SysCallHandling;
 import SW.Utilities;
 
 public class CPU implements Runnable {
+    public enum RequestType {
+        IN, OUT
+    }
+    public class Request {
+        public RequestType request;
+        public int num;
+        public int procId;
+    }
+
     private int maxInt; // valores maximo e minimo para inteiros nesta cpu
     private int minInt;
                         // CONTEXTO da CPU ...
@@ -30,7 +44,7 @@ public class CPU implements Runnable {
                                 // auxilio aa depuração
     private boolean debug;      // se true entao mostra cada instrucao em execucao
     private Utilities u;        // para debug (dump)
-    private int[] tabPag;
+    public int[] tabPag;
 
     public CPU(Memory _mem, boolean _debug) { // ref a MEMORIA passada na criacao da CPU
         maxInt = 32767;            // capacidade de representacao modelada
@@ -39,7 +53,8 @@ public class CPU implements Runnable {
         reg = new int[10];         // aloca o espaço dos registradores - regs 8 e 9 usados somente para IO                                        [x]
 
         debug = _debug;            // se true, print da instrucao em execucao
-
+        
+        requests = new ConcurrentLinkedQueue<>();
     }
     
     public boolean isDebug() {
@@ -89,6 +104,9 @@ public class CPU implements Runnable {
     public void updateMMU(int[] tabPag) {
         this.tabPag = tabPag;
     }
+
+    public ConcurrentLinkedQueue<Request> requests;
+    public int procId;
 
     @Override
     public void run() {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
@@ -282,6 +300,22 @@ public class CPU implements Runnable {
                         break;
 
                     case NOP:
+                        break;
+
+                    case IN:
+                        Request rqi = new Request();
+                        rqi.request = RequestType.IN;
+                        rqi.num = ir.ra;
+                        requests.add(rqi);
+                        ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB);
+                        break;
+
+                    case OUT:
+                        Request rqo = new Request();
+                        rqo.request = RequestType.OUT;
+                        rqo.num = ir.ra;
+                        requests.add(rqo);
+                        ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB);
                         break;
 
                     // Inexistente

@@ -11,7 +11,7 @@ import java.util.Queue;
 public class Scheduler {
     //private GP gp;
     private HW hw;
-    private Queue<PCB> q;
+    public Queue<PCB> q;
 
     public Scheduler(GP _gp, HW _hw, LinkedList<PCB> ps) {
         //gp = _gp;
@@ -35,5 +35,6 @@ public class Scheduler {
         }
         chosenPCB.pc = hw.cpu.pc;
         q.add(chosenPCB);
+        hw.cpu.procId = chosenPCB.id;
     }
 }

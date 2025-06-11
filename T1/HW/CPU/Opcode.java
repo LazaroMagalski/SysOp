@@ -8,5 +8,5 @@ public enum Opcode {
     ADDI, SUBI, ADD, SUB, MULT,    // matematicos
     LDI, LDD, STD, LDX, STX, MOVE, // movimentacao
     SYSCALL, STOP,                  // chamada de sistema e parada
-    NOP
+    NOP, IN, OUT
 }
