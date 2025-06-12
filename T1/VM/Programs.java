@@ -36,7 +36,8 @@ public class Programs {
                     new Word[] {
                             // este fatorial so aceita valores positivos. nao pode ser zero
                             // linha coment
-                            new Word(Opcode.IN, 11, -1, -1),
+                            new Word(Opcode.IN, 12, -1, -1),
+                            new Word(Opcode.OUT, 42, -1, -1),
                             new Word(Opcode.LDI, 1, -1, 1), // 1 r1 é 1 para multiplicar (por r0)
                             new Word(Opcode.LDI, 6, -1, 1), // 2 r6 é 1 o decremento
                             new Word(Opcode.LDI, 7, -1, 8), // 3 r7 tem posicao 8 para fim do programa

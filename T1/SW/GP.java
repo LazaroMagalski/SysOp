@@ -54,6 +54,7 @@ public class GP {
         int[] alocacao = gm.aloca(1);
         nopPCB = new PCB();
         nopPCB.tabPag = alocacao;
+        System.out.println(nopPCB.id);
         gm.carregarPrograma(new Word[]{
                 new Word(Opcode.NOP, 0, 0, 0)   
             }, alocacao);
@@ -85,7 +86,14 @@ public class GP {
     }
 
     public boolean desalocaProcesso(int id){
-        PCB pcb = pcbList.get(id);
+        PCB pcb = null;
+        for (int i = 0; i < pcbList.size(); i++) {
+            if (id == pcbList.get(i).id) {
+                pcb = pcbList.get(i);
+                break;
+            }
+        }
+        
         if(pcb == null){
             System.out.println("Processo inexistente");
             return false; 
@@ -96,7 +104,13 @@ public class GP {
     }
 
     public void executarProcesso(int id_processo){
-        PCB pcb = pcbList.get(id_processo);
+        PCB pcb = null;
+        for (int i = 0; i < pcbList.size(); i++) {
+            if (id_processo == pcbList.get(i).id) {
+                pcb = pcbList.get(i);
+                break;
+            }
+        }
 
         if(pcb == null){
             System.out.println("Processo não existe");
