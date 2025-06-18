@@ -19,7 +19,7 @@ public class Scheduler {
         q = ps;
     }
 
-    public void schedule(PCB nopPCB) {
+    public void schedule(PCB nopPCB, PCB currRunningPCB) {
         PCB chosenPCB = q.poll();
         if (chosenPCB == null) {
             chosenPCB = nopPCB;

@@ -4,9 +4,6 @@ import java.util.*;
 
 import HW.Console;
 import HW.HW;
-import SW.GM;
-import SW.GP;
-import SW.GP.PCB;
 import SW.SO;
 
 public class Sistema {
@@ -19,12 +16,22 @@ public class Sistema {
 		so = new SO(hw);
 		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
 		progs = new Programs();
+        wantsRead = false;
+        result = -1;
 	}
 	public void menu(){
-		Scanner sc = new Scanner(System.in);
+		Scanner sc;
 		while(true){
+			while (hw.cpu.procId != 0);
+			sc = new Scanner(System.in);
 			System.out.println("Digite um comando:");
-			String command = sc.nextLine();
+			String command;
+			try {
+				command = sc.nextLine();
+			} catch (NoSuchElementException e) {
+				continue;
+			}
+
 			switch (command) {
 				case "new":
 					System.out.println("Digite o nome do programa: ");
@@ -93,7 +100,16 @@ public class Sistema {
 					break;
 				case "exit":
 					sc.close();
+                        System.out.println("wants");
 					System.exit(0);
+					break;
+				case "IN":
+					System.out.println("IN");
+					System.out.println("shell"+wantsRead);
+					while (!wantsRead);
+					System.out.println("shell"+wantsRead);
+					result = sc.nextInt();
+					wantsRead = false;
 					break;
 				default:
 					break;
@@ -106,12 +122,15 @@ public class Sistema {
 		so.utils.loadAndExec(progs.retrieveProgram("sum"));
 	}
 	
+	volatile Integer result;
+	volatile Boolean wantsRead;
+
 	public static void main(String args[]) {
 		Sistema s = new Sistema(1024);
 		s.hw.cpu.updateMMU(s.so.gp.nopPCB.tabPag);
 		Thread th = new Thread(s.hw.cpu);
 		s.hw.cpu.setDebug(false);
-		Console c = new Console(s.hw.cpu.requests, s.so.gm, s.hw.cpu);
+		Console c = new Console(s.hw.cpu.requests, s.so.gm, s.hw.cpu, s.wantsRead, s.result);
 		Thread cth = new Thread(c);
 		th.start();
 		cth.start();

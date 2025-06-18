@@ -17,7 +17,12 @@ public class InterruptHandling {
     public void handle(Interrupts irpt) {
         // apenas avisa - todas interrupcoes neste momento finalizam o programa
         if (irpt == Interrupts.intTimer) {
-            so.gp.scheduler.schedule(so.gp.nopPCB);
+            for (int i = 0; i < so.gp.pcbList.size(); i++) {
+                if (so.gp.procExec == so.gp.pcbList.get(i).id) {
+                    so.gp.pcbList.get(i).state = State.BLOCKED;
+                    break;
+                }
+            }
         }
         if (irpt == Interrupts.intIOCompleta){
             PCB currPCB = so.gp.scheduler.q.poll();
@@ -26,6 +31,7 @@ public class InterruptHandling {
                 currPCB = so.gp.scheduler.q.poll();
             }
             currPCB.state = State.READY;
+            System.out.println("READY");
         }
     }
 }

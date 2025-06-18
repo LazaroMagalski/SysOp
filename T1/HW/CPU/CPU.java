@@ -1,16 +1,13 @@
 package HW.CPU;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-import  HW.CPU.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import SW.GM;
 import SW.InterruptHandling;
 import SW.SysCallHandling;
 import SW.Utilities;
+import SW.GP.State;
 
 public class CPU implements Runnable {
     public enum RequestType {
@@ -307,7 +304,12 @@ public class CPU implements Runnable {
                         rqi.request = RequestType.IN;
                         rqi.num = ir.ra;
                         requests.add(rqi);
-                        ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB);
+                        for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
+                            if (procId == ih.so.gp.pcbList.get(i).id) {
+                                ih.so.gp.pcbList.get(i).state = State.BLOCKED;
+                                break;
+                            }
+                        }
                         break;
 
                     case OUT:
@@ -315,7 +317,12 @@ public class CPU implements Runnable {
                         rqo.request = RequestType.OUT;
                         rqo.num = ir.ra;
                         requests.add(rqo);
-                        ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB);
+                        for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
+                            if (procId == ih.so.gp.pcbList.get(i).id) {
+                                ih.so.gp.pcbList.get(i).state = State.BLOCKED;
+                                break;
+                            }
+                        }
                         break;
 
                     // Inexistente

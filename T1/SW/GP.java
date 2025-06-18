@@ -55,6 +55,7 @@ public class GP {
         nopPCB = new PCB();
         nopPCB.tabPag = alocacao;
         System.out.println(nopPCB.id);
+        pcbList.add(nopPCB);
         gm.carregarPrograma(new Word[]{
                 new Word(Opcode.NOP, 0, 0, 0)   
             }, alocacao);
