@@ -1,6 +1,8 @@
 package VM;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import HW.Console;
 import HW.HW;
@@ -16,8 +18,8 @@ public class Sistema {
 		so = new SO(hw);
 		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
 		progs = new Programs();
-        wantsRead = false;
-        result = -1;
+        wantsRead = new AtomicBoolean(false);
+        result = new AtomicInteger(-1);
 	}
 	public void menu(){
 		Scanner sc;
@@ -100,16 +102,12 @@ public class Sistema {
 					break;
 				case "exit":
 					sc.close();
-                        System.out.println("wants");
 					System.exit(0);
 					break;
 				case "IN":
-					System.out.println("IN");
-					System.out.println("shell"+wantsRead);
-					while (!wantsRead);
-					System.out.println("shell"+wantsRead);
-					result = sc.nextInt();
-					wantsRead = false;
+					while (!wantsRead.get());
+					result.set(sc.nextInt());
+					wantsRead.set(false);
 					break;
 				default:
 					break;
@@ -122,8 +120,8 @@ public class Sistema {
 		so.utils.loadAndExec(progs.retrieveProgram("sum"));
 	}
 	
-	volatile Integer result;
-	volatile Boolean wantsRead;
+	AtomicInteger result;
+	AtomicBoolean wantsRead;
 
 	public static void main(String args[]) {
 		Sistema s = new Sistema(1024);

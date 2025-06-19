@@ -31,7 +31,6 @@ public class InterruptHandling {
                 currPCB = so.gp.scheduler.q.poll();
             }
             currPCB.state = State.READY;
-            System.out.println("READY");
         }
     }
 }
