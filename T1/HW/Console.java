@@ -48,9 +48,6 @@ public class Console implements Runnable {
                                 break;
                             }
                         }
-                        if (tabPag == null) {
-                            System.out.println("PROBLEMA");
-                        }
                         int phys = GM.tradutor(rq.num, tabPag);
                         gm.memory.pos[phys].opc = Opcode.DATA;
                         gm.memory.pos[phys].p = result.get();
