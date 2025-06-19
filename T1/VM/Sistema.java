@@ -24,7 +24,7 @@ public class Sistema {
 	public void menu(){
 		Scanner sc;
 		while(true){
-			while (hw.cpu.procId != 0);
+			while (hw.cpu.procId.get() != 0);
 			sc = new Scanner(System.in);
 			System.out.println("Digite um comando:");
 			String command;

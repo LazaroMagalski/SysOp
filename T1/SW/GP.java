@@ -124,6 +124,7 @@ public class GP {
         //}
         procExec = id_processo;
         cpu.setContext(pcb.pc);
+        cpu.procId.set(id_processo);
         cpu.updateMMU(pcb.tabPag);
         cpu.reg = pcb.regs;
         //cpu.run();
@@ -132,7 +133,7 @@ public class GP {
 
     public void executarTodosProcessos() {
         while (pcbList.size() > 0) {
-            cpu.irpt = Interrupts.intTimer;
+            cpu.irpt.set(Interrupts.intTimer);
             boolean running = false;
             for (var pcb : pcbList) {
                 if (pcb == null){

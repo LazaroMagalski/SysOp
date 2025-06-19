@@ -1,6 +1,9 @@
 package HW.CPU;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import SW.GM;
@@ -25,7 +28,7 @@ public class CPU implements Runnable {
     public int pc;     // ... composto de program counter,
     public Word ir;    // instruction register,
     public int[] reg;  // registradores da CPU
-    public Interrupts irpt; // durante instrucao, interrupcao pode ser sinalizada
+    public AtomicReference<Interrupts> irpt; // durante instrucao, interrupcao pode ser sinalizada
                         // FIM CONTEXTO DA CPU: tudo que precisa sobre o estado de um processo para
                         // executa-lo
                         // nas proximas versoes isto pode modificar
@@ -52,6 +55,9 @@ public class CPU implements Runnable {
         debug = _debug;            // se true, print da instrucao em execucao
         
         requests = new ConcurrentLinkedQueue<>();
+        irpt = new AtomicReference<>();
+        irpt.set(Interrupts.noInterrupt);
+        procId = new AtomicInteger(0);
     }
     
     public boolean isDebug() {
@@ -78,14 +84,14 @@ public class CPU implements Runnable {
         if (e >= 0 && e < m.pos.length) {
             return true;
         } else {
-            irpt = Interrupts.intEnderecoInvalido;    // se nao for liga interrupcao no meio da exec da instrucao
+            irpt.set(Interrupts.intEnderecoInvalido);    // se nao for liga interrupcao no meio da exec da instrucao
             return false;
         }
     }
 
     private boolean testOverflow(int v) {             // toda operacao matematica deve avaliar se ocorre overflow
         if ((v < minInt) || (v > maxInt)) {
-            irpt = Interrupts.intOverflow;            // se houver liga interrupcao no meio da exec da instrucao
+            irpt.set(Interrupts.intOverflow);            // se houver liga interrupcao no meio da exec da instrucao
             return false;
         }
         ;
@@ -95,7 +101,7 @@ public class CPU implements Runnable {
     public void setContext(int _pc) {                 // usado para setar o contexto da cpu para rodar um processo
                                                       // [ nesta versao é somente colocar o PC na posicao 0 ]
         pc = _pc;                                     // pc cfe endereco logico
-        irpt = Interrupts.noInterrupt;                // reset da interrupcao registrada
+        irpt.set(Interrupts.noInterrupt);                // reset da interrupcao registrada
     }
 
     public void updateMMU(int[] tabPag) {
@@ -103,7 +109,7 @@ public class CPU implements Runnable {
     }
 
     public ConcurrentLinkedQueue<Request> requests;
-    public int procId;
+    public AtomicInteger procId;
 
     @Override
     public void run() {                               // execucao da CPU supoe que o contexto da CPU, vide acima, 
@@ -281,7 +287,7 @@ public class CPU implements Runnable {
                         break;
 
                     case DATA: // pc está sobre área supostamente de dados
-                        irpt = Interrupts.intInstrucaoInvalida;
+                        irpt.set(Interrupts.intInstrucaoInvalida);
                         break;
 
                     // Chamadas de sistema
@@ -297,6 +303,13 @@ public class CPU implements Runnable {
                         break;
 
                     case NOP:
+                        // System.out.println("nop");
+                        // for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
+                        //     if (procId == ih.so.gp.pcbList.get(i).id) {
+                        //         System.out.println(ih.so.gp.pcbList.get(i).state);
+                        //         break;
+                        //     }
+                        // }
                         break;
 
                     case IN:
@@ -305,20 +318,22 @@ public class CPU implements Runnable {
                         rqi.num = ir.ra;
                         requests.add(rqi);
                         for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
-                            if (procId == ih.so.gp.pcbList.get(i).id) {
+                            if (procId.get() == ih.so.gp.pcbList.get(i).id) {
                                 ih.so.gp.pcbList.get(i).state = State.BLOCKED;
+                                ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB, ih.so.gp.pcbList.get(i));
                                 break;
                             }
                         }
                         break;
 
                     case OUT:
+                        System.out.println("OUT");
                         Request rqo = new Request();
                         rqo.request = RequestType.OUT;
                         rqo.num = ir.ra;
                         requests.add(rqo);
                         for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
-                            if (procId == ih.so.gp.pcbList.get(i).id) {
+                            if (procId.get() == ih.so.gp.pcbList.get(i).id) {
                                 ih.so.gp.pcbList.get(i).state = State.BLOCKED;
                                 break;
                             }
@@ -327,13 +342,13 @@ public class CPU implements Runnable {
 
                     // Inexistente
                     default:
-                        irpt = Interrupts.intInstrucaoInvalida;
+                        irpt.set(Interrupts.intInstrucaoInvalida);
                         break;
                 }
             }
             // --------------------------------------------------------------------------------------------------
             // VERIFICA INTERRUPÇÃO !!! - TERCEIRA FASE DO CICLO DE INSTRUÇÕES
-            if (irpt != Interrupts.noInterrupt) { // existe interrupção
+            if (irpt.get() != Interrupts.noInterrupt) { // existe interrupção
                 ih.handle(irpt);                  // desvia para rotina de tratamento - esta rotina é do SO
                 cpuStop = true;                   // nesta versao, para a CPU
             }

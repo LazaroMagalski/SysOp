@@ -3,6 +3,9 @@ package SW;
 import HW.CPU.Interrupts;
 import SW.GP.PCB;
 import SW.GP.State;
+
+import java.util.concurrent.atomic.AtomicReference;
+
 import HW.HW;
 
 public class InterruptHandling {
@@ -14,28 +17,31 @@ public class InterruptHandling {
         so = _so;
     }
 
-    public void handle(Interrupts irpt) {
+    public void handle(AtomicReference<Interrupts> irpt) {
         // apenas avisa - todas interrupcoes neste momento finalizam o programa
-        if (irpt == Interrupts.intTimer) {
+        if (irpt.get() == Interrupts.intTimer) {
             for (int i = 0; i < so.gp.pcbList.size(); i++) {
                 if (so.gp.procExec == so.gp.pcbList.get(i).id) {
                     so.gp.pcbList.get(i).state = State.READY;
                     break;
                 }
             }
-        }
-        if (irpt == Interrupts.intIOCompleta){
+        } else if (irpt.get() == Interrupts.intIOCompleta){
+            System.out.println("received complete io");
+            PCB currPCB;
             if (so.gp.pcbList.size() >= 2) {
-                so.gp.pcbList.get(1).state = State.READY;
+                currPCB = so.gp.pcbList.get(1);
+                currPCB.state = State.READY;
             } else {
-                PCB currPCB = so.gp.scheduler.q.poll();
-                while (hw.cpu.procId != currPCB.id) {
+                currPCB = so.gp.scheduler.q.poll();
+                while (hw.cpu.procId.get() != currPCB.id) {
                     so.gp.scheduler.q.add(currPCB);
                     currPCB = so.gp.scheduler.q.poll();
                 }
                 currPCB.state = State.READY;
             }
+            currPCB.pc++;
         }
-        irpt = Interrupts.noInterrupt;
+        irpt.set(Interrupts.noInterrupt);
     }
 }

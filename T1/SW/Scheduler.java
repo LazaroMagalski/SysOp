@@ -9,32 +9,48 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class Scheduler {
-    //private GP gp;
+    // private GP gp;
     private HW hw;
     public Queue<PCB> q;
 
     public Scheduler(GP _gp, HW _hw, LinkedList<PCB> ps) {
-        //gp = _gp;
+        // gp = _gp;
         hw = _hw;
         q = ps;
     }
 
     public void schedule(PCB nopPCB, PCB currRunningPCB) {
         PCB chosenPCB = q.poll();
-        if (chosenPCB == null) {
-            chosenPCB = nopPCB;
-        }
-
+        boolean choseOne = false;
         if (chosenPCB.state == State.READY) {
-            hw.cpu.setContext(chosenPCB.pc);
-            hw.cpu.updateMMU(chosenPCB.tabPag);
-            hw.cpu.reg = chosenPCB.regs;
+            choseOne = true;
         }
-        if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP || hw.cpu.irpt != Interrupts.noInterrupt) {
+        if (!choseOne) {
+            q.add(chosenPCB);
+            for (int i = 1; i < q.size(); i++) {
+                chosenPCB = q.poll();
+                if (chosenPCB.state == State.READY) {
+                    choseOne = true;
+                    break;
+                }
+                q.add(chosenPCB);
+            }
+            if (!choseOne) {
+                chosenPCB = nopPCB;
+            }
+        }
+        // System.out.println(chosenPCB.id);
+        // System.out.println(chosenPCB.state);
+
+        hw.cpu.setContext(chosenPCB.pc);
+        hw.cpu.updateMMU(chosenPCB.tabPag);
+        hw.cpu.reg = chosenPCB.regs;
+        if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP
+                || hw.cpu.irpt.get() != Interrupts.noInterrupt) {
             chosenPCB.state = State.RUNNING;
         }
         chosenPCB.pc = hw.cpu.pc;
         q.add(chosenPCB);
-        hw.cpu.procId = chosenPCB.id;
+        hw.cpu.procId.set(chosenPCB.id);
     }
 }

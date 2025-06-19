@@ -32,6 +32,7 @@ public class Console implements Runnable {
         while (true) {
             if (!requests.isEmpty()) {
                 Request rq = requests.poll();
+
                 switch (rq.request) {
                     case IN:
                         wantsRead.set(true);
@@ -49,7 +50,8 @@ public class Console implements Runnable {
                     default:
                         break;
                 }
-                cpu.irpt = Interrupts.intIOCompleta;
+                cpu.irpt.set(Interrupts.intIOCompleta);
+                System.out.println("sent complete io");
             }
         }
     }
