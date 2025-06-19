@@ -19,18 +19,23 @@ public class InterruptHandling {
         if (irpt == Interrupts.intTimer) {
             for (int i = 0; i < so.gp.pcbList.size(); i++) {
                 if (so.gp.procExec == so.gp.pcbList.get(i).id) {
-                    so.gp.pcbList.get(i).state = State.BLOCKED;
+                    so.gp.pcbList.get(i).state = State.READY;
                     break;
                 }
             }
         }
         if (irpt == Interrupts.intIOCompleta){
-            PCB currPCB = so.gp.scheduler.q.poll();
-            while (hw.cpu.procId != currPCB.id) {
-                so.gp.scheduler.q.add(currPCB);
-                currPCB = so.gp.scheduler.q.poll();
+            if (so.gp.pcbList.size() >= 2) {
+                so.gp.pcbList.get(1).state = State.READY;
+            } else {
+                PCB currPCB = so.gp.scheduler.q.poll();
+                while (hw.cpu.procId != currPCB.id) {
+                    so.gp.scheduler.q.add(currPCB);
+                    currPCB = so.gp.scheduler.q.poll();
+                }
+                currPCB.state = State.READY;
             }
-            currPCB.state = State.READY;
         }
+        irpt = Interrupts.noInterrupt;
     }
 }

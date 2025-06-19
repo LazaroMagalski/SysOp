@@ -83,6 +83,7 @@ public class GP {
         //Seta demais parâmetros do PCB (id, pc=0, etc)
         //Coloca PCB na fila de prontos
         pcbList.add(novoPCB);
+        System.out.println(pcbList.size());
         return true;
     }
 
@@ -152,7 +153,14 @@ public class GP {
         return pcbId;
     }
     public void dump(int id){
-       PCB pcb = pcbList.get(id);
+        System.out.println(pcbList.size());
+        PCB pcb = null;
+        for (int i = 0; i < pcbList.size(); i++) {
+            if (id == pcbList.get(i).id) {
+                pcb = pcbList.get(i);
+                break;
+            }
+        }
        if(pcb == null){
             System.out.println("Processo invalido");
             return;
