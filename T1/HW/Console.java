@@ -10,21 +10,24 @@ import HW.CPU.Interrupts;
 import HW.CPU.Opcode;
 import HW.CPU.CPU.Request;
 import SW.GM;
+import SW.GP;
 
 public class Console implements Runnable {
 
     ConcurrentLinkedQueue<Request> requests;
     GM gm;
     CPU cpu;
+    GP gp;
     AtomicBoolean wantsRead;
     AtomicInteger result;
 
-    public Console(ConcurrentLinkedQueue<Request> _requests, GM _gm, CPU _cpu, AtomicBoolean _wants, AtomicInteger _result) {
+    public Console(ConcurrentLinkedQueue<Request> _requests, GM _gm, CPU _cpu, AtomicBoolean _wants, AtomicInteger _result, GP _gp) {
         requests = _requests;
         gm = _gm;
         cpu = _cpu;
         wantsRead = _wants;
         result = _result;
+        gp = _gp;
     }
 
     @Override
@@ -38,7 +41,17 @@ public class Console implements Runnable {
                         wantsRead.set(true);
                         while (wantsRead.get());
                         
-                        int phys = GM.tradutor(rq.num, cpu.tabPag);
+                        int[] tabPag = null;
+                        for (int i = 0; i < gp.pcbList.size(); i++) {
+                            if (rq.procId == gp.pcbList.get(i).id) {
+                                tabPag = gp.pcbList.get(i).tabPag;
+                                break;
+                            }
+                        }
+                        if (tabPag == null) {
+                            System.out.println("PROBLEMA");
+                        }
+                        int phys = GM.tradutor(rq.num, tabPag);
                         gm.memory.pos[phys].opc = Opcode.DATA;
                         gm.memory.pos[phys].p = result.get();
                         break;

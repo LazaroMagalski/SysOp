@@ -316,6 +316,7 @@ public class CPU implements Runnable {
                         Request rqi = new Request();
                         rqi.request = RequestType.IN;
                         rqi.num = ir.ra;
+                        rqi.procId = procId.get();
                         requests.add(rqi);
                         for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
                             if (procId.get() == ih.so.gp.pcbList.get(i).id) {

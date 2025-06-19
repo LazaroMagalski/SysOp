@@ -128,7 +128,7 @@ public class Sistema {
 		s.hw.cpu.updateMMU(s.so.gp.nopPCB.tabPag);
 		Thread th = new Thread(s.hw.cpu);
 		s.hw.cpu.setDebug(false);
-		Console c = new Console(s.hw.cpu.requests, s.so.gm, s.hw.cpu, s.wantsRead, s.result);
+		Console c = new Console(s.hw.cpu.requests, s.so.gm, s.hw.cpu, s.wantsRead, s.result, s.so.gp);
 		Thread cth = new Thread(c);
 		th.start();
 		cth.start();
