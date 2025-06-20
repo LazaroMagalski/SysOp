@@ -1,9 +1,11 @@
 package SW;
 
-import java.util.Stack;
-
+import HW.CPU.CPU;
+import HW.CPU.Interrupts;
+import HW.Memory.Disco;
 import HW.Memory.Memory;
 import HW.Memory.Word;
+import java.util.Stack;
 // -------------------------------------------------------------------------------------------------------
 // --------------------- M E M O R I A - definicoes de palavra de memoria,
 // memória ----------------------
@@ -13,8 +15,9 @@ public class GM {
 	public static int tamPag;
 	public int frames;
 	private Stack<Integer> freeFrames;
+	public CPU cpu;
 
-	public GM(Memory memory, int _tamPag) {
+	public GM(Memory memory, int _tamPag, CPU cpu) {
 		this.memory = memory;
 		this.tamMem = memory.pos.length;
 		tamPag = _tamPag;
@@ -23,6 +26,7 @@ public class GM {
 		for (int i = frames-1; i >= 0; i -= 2) {
 			freeFrames.push(i);
 		}
+		this.cpu = cpu;
 	}
 
 	public int[] aloca(int nroPalavras) {
@@ -83,8 +87,9 @@ public class GM {
 		}
 
 		if (numPagina >= tabelaPaginas.length || tabelaPaginas[numPagina] == -1) {
-			System.out.println("Página "+ 1 + " não existe/não foi alocada na memória RAM");
-			return -1;
+			System.out.println("Página "+ numPagina + " não existe/não foi alocada na memória RAM");
+			CPU.irpt.set(Interrupts.intPageFault);
+			return -2;
 		}
 
 		int numFrame = tabelaPaginas[numPagina]; // Salva o frame físico correspondente
@@ -93,4 +98,21 @@ public class GM {
 		return enderecoFisico;
 	}
 
+	public void salvaPaginaNoDisco(int numFrame, Disco disco) {
+		Word[] pagina = new Word[tamPag];
+		for (int i = 0; i < tamPag; i++) {
+			pagina[i] = memory.pos[numFrame * tamPag + i];
+		}
+		disco.salvarPagina(numFrame, pagina);
+	}
+
+	public void carregaPaginaDoDisco(int numPagina, int frame, Disco disco) {
+		Word[] pagina = disco.recuperaPagina(numPagina);
+		if (pagina != null) {
+			for (int i = 0; i < tamPag; i++) {
+				memory.pos[(frame * tamPag) + i] = pagina[i];
+			}
+			disco.removePagina(numPagina);
+		}
+	}
 }

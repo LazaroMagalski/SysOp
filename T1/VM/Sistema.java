@@ -1,13 +1,12 @@
 package VM;
 
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import HW.Console;
 import HW.HW;
 import SW.SO;
 import SW.Timer;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Sistema {
     public HW hw;
@@ -48,9 +47,9 @@ public class Sistema {
 						so.gp.criaProcesso(progs.retrieveProg("fatorialV2"));
 						so.gp.desalocaProcesso(0);
 						so.gp.criaProcesso(progs.retrieveProg("fibonacci10v2"));
-					} else {
+					} else{
 						so.gp.criaProcesso(progs.retrieveProg(name));
-					}
+					} 
 					break;
 				case "rm":
 					System.out.println("Digite o id do programa: ");

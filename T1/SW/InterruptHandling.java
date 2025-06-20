@@ -1,12 +1,10 @@
 package SW;
 
 import HW.CPU.Interrupts;
+import HW.HW;
 import SW.GP.PCB;
 import SW.GP.State;
-
 import java.util.concurrent.atomic.AtomicReference;
-
-import HW.HW;
 
 public class InterruptHandling {
     private HW hw; // referencia ao hw se tiver que setar algo
@@ -32,6 +30,10 @@ public class InterruptHandling {
             so.gp.scheduler.q.add(currPCB);
             currPCB.state = State.READY;
             currPCB.pc++;
+        }
+        if (irpt.get() == Interrupts.intPageFault) {
+            
+            System.out.println("Tratando page fault");
         }
         irpt.set(Interrupts.noInterrupt);
     }
