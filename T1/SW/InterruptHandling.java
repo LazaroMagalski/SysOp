@@ -29,6 +29,7 @@ public class InterruptHandling {
                 so.gp.scheduler.q.add(currPCB);
                 currPCB = so.gp.scheduler.q.poll();
             }
+            so.gp.scheduler.q.add(currPCB);
             currPCB.state = State.READY;
             currPCB.pc++;
         }

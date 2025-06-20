@@ -60,7 +60,9 @@ public class Sistema {
 					break;
 				case "ps":
 					System.out.println(so.gp.pcbList.size());
-					System.out.println(Arrays.toString(so.gp.pcbList.stream().mapToInt(p -> p.id).toArray()));
+					for (int i = 0; i < so.gp.pcbList.size(); i++) {
+						System.out.println(so.gp.pcbList.get(i).id);
+					}
 					break;
 				case "dump":
 					System.out.println("Digite o id do programa: ");

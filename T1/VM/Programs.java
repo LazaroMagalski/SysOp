@@ -37,7 +37,6 @@ public class Programs {
                             // este fatorial so aceita valores positivos. nao pode ser zero
                             // linha coment
                             new Word(Opcode.IN, 12, -1, -1),
-                            new Word(Opcode.OUT, 42, -1, -1),
                             new Word(Opcode.LDI, 1, -1, 1), // 1 r1 é 1 para multiplicar (por r0)
                             new Word(Opcode.LDI, 6, -1, 1), // 2 r6 é 1 o decremento
                             new Word(Opcode.LDI, 7, -1, 8), // 3 r7 tem posicao 8 para fim do programa
@@ -47,6 +46,7 @@ public class Programs {
                                                             // termo
                             new Word(Opcode.JMP, -1, -1, 4), // 7 vai p posicao 4
                             new Word(Opcode.STD, 1, -1, 10), // 8 coloca valor de r1 na posição 10
+                            new Word(Opcode.OUT, 12, -1, -1),
                             new Word(Opcode.STOP, -1, -1, -1), // 9 stop
                             new Word(Opcode.DATA, -1, -1, -1), // 10 ao final o valor está na posição 10 da memória
                             new Word(Opcode.DATA, -1, -1, -1) // 11 valor de parametro

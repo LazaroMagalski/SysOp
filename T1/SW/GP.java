@@ -1,7 +1,6 @@
 package SW;
 
 import HW.CPU.CPU;
-import HW.CPU.Interrupts;
 import HW.CPU.Opcode;
 import HW.HW;
 import HW.Memory.Memory;
