@@ -59,6 +59,7 @@ public class Sistema {
 						System.out.println("Processo Removido");
 					break;
 				case "ps":
+					System.out.println(so.gp.pcbList.size());
 					System.out.println(Arrays.toString(so.gp.pcbList.stream().mapToInt(p -> p.id).toArray()));
 					break;
 				case "dump":
@@ -85,11 +86,6 @@ public class Sistema {
 							System.out.println();
 						}
 					}
-					break;
-				case "exec":
-					System.out.println("Digite o id do programa: ");
-					int exec_id = sc.nextInt();
-					so.gp.executarProcesso(exec_id);
 					break;
 				case "traceOn":
 					hw.cpu.setDebug(true);

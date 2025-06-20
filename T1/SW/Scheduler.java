@@ -53,5 +53,6 @@ public class Scheduler {
         chosenPCB.pc = hw.cpu.pc;
         q.add(chosenPCB);
         hw.cpu.procId.set(chosenPCB.id);
+        // System.out.println(q.size());
     }
 }

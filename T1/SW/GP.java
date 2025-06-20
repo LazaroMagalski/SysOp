@@ -105,32 +105,6 @@ public class GP {
         return true;
     }
 
-    public void executarProcesso(int id_processo){
-        PCB pcb = null;
-        for (int i = 0; i < pcbList.size(); i++) {
-            if (id_processo == pcbList.get(i).id) {
-                pcb = pcbList.get(i);
-                break;
-            }
-        }
-
-        if(pcb == null){
-            System.out.println("Processo não existe");
-            return;
-        }
-       // if(procExec == id_processo){
-         //   System.out.println("Processo em execução");
-           // return;
-        //}
-        procExec = id_processo;
-        cpu.setContext(pcb.pc);
-        cpu.procId.set(id_processo);
-        cpu.updateMMU(pcb.tabPag);
-        cpu.reg = pcb.regs;
-        //cpu.run();
-
-    }
-
     public int getPcbId() {
         return pcbId;
     }
