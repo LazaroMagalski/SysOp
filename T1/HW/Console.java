@@ -61,6 +61,7 @@ public class Console implements Runnable {
                         break;
                 }
                 cpu.irpt.set(Interrupts.intIOCompleta);
+                cpu.procId.set(rq.procId);
                 System.out.println("sent complete io");
             }
         }

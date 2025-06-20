@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import HW.Console;
 import HW.HW;
 import SW.SO;
+import SW.Timer;
 
 public class Sistema {
     public HW hw;
@@ -96,10 +97,6 @@ public class Sistema {
 				case "traceOff":
 					hw.cpu.setDebug(false);
 					break;
-				case "execAll":
-					System.out.println();
-					so.gp.executarTodosProcessos();
-					break;
 				case "exit":
 					sc.close();
 					System.exit(0);
@@ -130,8 +127,11 @@ public class Sistema {
 		s.hw.cpu.setDebug(false);
 		Console c = new Console(s.hw.cpu.requests, s.so.gm, s.hw.cpu, s.wantsRead, s.result, s.so.gp);
 		Thread cth = new Thread(c);
+		Timer timer = new Timer(s.hw.cpu);
+		Thread tth = new Thread(timer);
 		th.start();
 		cth.start();
+		tth.start();
 		s.menu();
 		//s.run();
 	}

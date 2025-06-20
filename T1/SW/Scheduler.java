@@ -19,7 +19,7 @@ public class Scheduler {
         q = ps;
     }
 
-    public void schedule(PCB nopPCB, PCB currRunningPCB) {
+    public void schedule(PCB nopPCB) {
         PCB chosenPCB = q.poll();
         boolean choseOne = false;
         if (chosenPCB.state == State.READY) {
@@ -31,6 +31,7 @@ public class Scheduler {
                 chosenPCB = q.poll();
                 if (chosenPCB.state == State.READY) {
                     choseOne = true;
+                    q.add(chosenPCB);
                     break;
                 }
                 q.add(chosenPCB);

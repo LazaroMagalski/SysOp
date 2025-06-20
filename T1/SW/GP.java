@@ -131,25 +131,6 @@ public class GP {
 
     }
 
-    public void executarTodosProcessos() {
-        while (pcbList.size() > 0) {
-            cpu.irpt.set(Interrupts.intTimer);
-            boolean running = false;
-            for (var pcb : pcbList) {
-                if (pcb == null){
-                    break;
-                }
-                if (pcb.state == State.READY) {
-                    running = true;
-                    break;
-                }
-            }
-            if (!running) {
-                break;
-            }
-        }
-    }
-
     public int getPcbId() {
         return pcbId;
     }

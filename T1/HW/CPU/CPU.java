@@ -313,6 +313,7 @@ public class CPU implements Runnable {
                         break;
 
                     case IN:
+                        System.out.println("IN "+procId);
                         Request rqi = new Request();
                         rqi.request = RequestType.IN;
                         rqi.num = ir.ra;
@@ -321,10 +322,10 @@ public class CPU implements Runnable {
                         for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {
                             if (procId.get() == ih.so.gp.pcbList.get(i).id) {
                                 ih.so.gp.pcbList.get(i).state = State.BLOCKED;
-                                ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB, ih.so.gp.pcbList.get(i));
                                 break;
                             }
                         }
+                        ih.so.gp.scheduler.schedule(ih.so.gp.nopPCB);
                         break;
 
                     case OUT:
