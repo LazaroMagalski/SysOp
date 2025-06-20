@@ -14,7 +14,7 @@ public class GM {
 	public int tamMem;
 	public static int tamPag;
 	public int frames;
-	private Stack<Integer> freeFrames;
+	public Stack<Integer> freeFrames;
 	public CPU cpu;
 
 	public GM(Memory memory, int _tamPag, CPU cpu) {

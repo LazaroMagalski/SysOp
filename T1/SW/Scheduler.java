@@ -50,7 +50,8 @@ public void schedule(PCB nopPCB) {
     hw.cpu.setContext(chosenPCB.pc);
     hw.cpu.updateMMU(chosenPCB.tabPag);
 
-    if (hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP
+    int ef = GM.tradutor(chosenPCB.pc, chosenPCB.tabPag);
+    if (ef >= 0 && hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP
             || hw.cpu.irpt.get() != Interrupts.noInterrupt) {
         chosenPCB.state = State.RUNNING;
     }

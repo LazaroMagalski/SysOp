@@ -123,10 +123,14 @@ public class CPU implements Runnable {
             int enderecoFisico = GM.tradutor(pc, tabPag);
 
             if (enderecoFisico == -2) {
-                return;
+
             }
             if (legal(enderecoFisico) && enderecoFisico >= 0) { // pc valido
                 ir = m.pos[enderecoFisico]; // FETCH
+                if (irpt.get() != Interrupts.noInterrupt) {
+                    ih.handle(irpt);
+                    cpuStop = true; 
+                }
                 if (debug) {
                     System.out.print("                                             regs: ");
                     for (int i = 0; i < 10; i++) {
@@ -156,9 +160,7 @@ public class CPU implements Runnable {
                             if (ef >= 0) {
                                 reg[ir.ra] = m.pos[ef].p;
                                 pc++;
-                            } else {
-                                return; // page fault, interrompe ciclo
-                            }
+                            } 
                         }
                         break;
                     case LDX: // RD <- [RS]
@@ -167,9 +169,7 @@ public class CPU implements Runnable {
                             if (ef >= 0) {
                                 reg[ir.ra] = m.pos[ef].p;
                                 pc++;
-                            } else {
-                                return;
-                            }
+                            } 
                         }
                         break;
                     case STD: // [A] ← Rs
@@ -183,9 +183,7 @@ public class CPU implements Runnable {
                                     System.out.print("                                  ");
                                     u.dump(ir.p, ir.p + 1);
                                 }
-                            } else {
-                                return;
-                            }
+                            } 
                         }
                         break;
                     case STX: // [Rd] ←Rs
@@ -195,9 +193,7 @@ public class CPU implements Runnable {
                                 m.pos[ef].opc = Opcode.DATA;
                                 m.pos[ef].p = reg[ir.rb];
                                 pc++;
-                            } else {
-                                return;
-                            }
+                            } 
                         }
                         break;
                     case MOVE: // RD <- RS

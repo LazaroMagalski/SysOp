@@ -32,8 +32,56 @@ public class InterruptHandling {
             currPCB.pc++;
         }
         if (irpt.get() == Interrupts.intPageFault) {
-            
             System.out.println("Tratando page fault");
+            int procId = hw.cpu.procId.get();
+            PCB currPCB = null;
+            for (PCB pcb : so.gp.pcbList) {
+                if (pcb.id == procId) {
+                    currPCB = pcb;
+                    break;
+                }
+            }
+            if (currPCB == null) {
+                System.out.println("PCB não encontrado para tratamento de page fault.");
+                irpt.set(Interrupts.noInterrupt);
+                return;
+            }
+
+            int enderecoLogico = hw.cpu.pc;
+            int tamPag = SW.GM.tamPag;
+            int numPagina = enderecoLogico / tamPag;
+
+            int frameLivre = -1;
+            boolean temFrameLivre = false;
+            if (!so.gm.freeFrames.isEmpty()) {
+                frameLivre = so.gm.freeFrames.pop();
+                temFrameLivre = true;
+            }
+
+            int paginaSubstituida = -1;
+            if (!temFrameLivre) {
+                // Substitui a página atualmente carregada (exceto a que está sendo pedida)
+                for (int i = 0; i < currPCB.tabPag.length; i++) {
+                    if (currPCB.tabPag[i] != -1 && i != numPagina) {
+                        paginaSubstituida = i;
+                        frameLivre = currPCB.tabPag[i];
+                        break;
+                    }
+                }
+                if (paginaSubstituida != -1) {
+                    so.gm.salvaPaginaNoDisco(frameLivre, so.gp.disco);
+                    currPCB.tabPag[paginaSubstituida] = -1;
+                    System.out.println("Substituindo página " + paginaSubstituida + " do frame " + frameLivre);
+                }
+            }
+
+            so.gm.carregaPaginaDoDisco(numPagina, frameLivre, so.gp.disco);
+            currPCB.tabPag[numPagina] = frameLivre;
+
+            System.out.println("Page fault tratado: página " + numPagina + " carregada no frame " + frameLivre);
+
+            irpt.set(Interrupts.noInterrupt);
+            return;
         }
         irpt.set(Interrupts.noInterrupt);
     }
