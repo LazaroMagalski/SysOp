@@ -152,34 +152,53 @@ public class CPU implements Runnable {
                         break;
                     case LDD: // Rd <- [A]
                         if (legal(ir.p)) {
-                            reg[ir.ra] = m.pos[GM.tradutor(ir.p, tabPag)].p;
-                            pc++;
+                            int ef = GM.tradutor(ir.p, tabPag);
+                            if (ef >= 0) {
+                                reg[ir.ra] = m.pos[ef].p;
+                                pc++;
+                            } else {
+                                return; // page fault, interrompe ciclo
+                            }
                         }
                         break;
-                    case LDX: // RD <- [RS] // NOVA
+                    case LDX: // RD <- [RS]
                         if (legal(reg[ir.rb])) {
-                            reg[ir.ra] = m.pos[GM.tradutor(reg[ir.rb], tabPag)].p;
-                            pc++;
+                            int ef = GM.tradutor(reg[ir.rb], tabPag);
+                            if (ef >= 0) {
+                                reg[ir.ra] = m.pos[ef].p;
+                                pc++;
+                            } else {
+                                return;
+                            }
                         }
                         break;
                     case STD: // [A] ← Rs
                         if (legal(ir.p)) {
-                            m.pos[GM.tradutor(ir.p, tabPag)].opc = Opcode.DATA;
-                            m.pos[GM.tradutor(ir.p, tabPag)].p = reg[ir.ra];
-                            pc++;
-                            if (debug) {
-                                System.out.print("                                  ");
-                                u.dump(ir.p, ir.p + 1);
+                            int ef = GM.tradutor(ir.p, tabPag);
+                            if (ef >= 0) {
+                                m.pos[ef].opc = Opcode.DATA;
+                                m.pos[ef].p = reg[ir.ra];
+                                pc++;
+                                if (debug) {
+                                    System.out.print("                                  ");
+                                    u.dump(ir.p, ir.p + 1);
+                                }
+                            } else {
+                                return;
                             }
                         }
                         break;
                     case STX: // [Rd] ←Rs
                         if (legal(reg[ir.ra])) {
-                            m.pos[GM.tradutor(reg[ir.ra], tabPag)].opc = Opcode.DATA;
-                            m.pos[GM.tradutor(reg[ir.ra], tabPag)].p = reg[ir.rb];
-                            pc++;
+                            int ef = GM.tradutor(reg[ir.ra], tabPag);
+                            if (ef >= 0) {
+                                m.pos[ef].opc = Opcode.DATA;
+                                m.pos[ef].p = reg[ir.rb];
+                                pc++;
+                            } else {
+                                return;
+                            }
                         }
-                        ;
                         break;
                     case MOVE: // RD <- RS
                         reg[ir.ra] = reg[ir.rb];

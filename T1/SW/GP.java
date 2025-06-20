@@ -139,28 +139,33 @@ public class GP {
     }
 
     public void dump(int id) {
-        System.out.println(pcbList.size());
-        PCB pcb = null;
-        for (int i = 0; i < pcbList.size(); i++) {
-            if (id == pcbList.get(i).id) {
-                pcb = pcbList.get(i);
-                break;
-            }
+    System.out.println(pcbList.size());
+    PCB pcb = null;
+    for (int i = 0; i < pcbList.size(); i++) {
+        if (id == pcbList.get(i).id) {
+            pcb = pcbList.get(i);
+            break;
         }
-        if (pcb == null) {
-            System.out.println("Processo invalido");
-            return;
-        }
-        System.out.println();
-        System.out.println("PCB ID: " + pcb.id);
-        System.out.println("PCB PC: " + pcb.pc);
-        System.out.println("TabPag");
-        for (int i = 0; i < pcb.tabPag.length; i++) {
-            for (int j = 0; j < GM.tamPag; j++) {
-                System.out.println(gm.memory.pos[GM.tradutor((i * GM.tamPag) + j, pcb.tabPag)]);
+    }
+    if (pcb == null) {
+        System.out.println("Processo invalido");
+        return;
+    }
+    System.out.println();
+    System.out.println("PCB ID: " + pcb.id);
+    System.out.println("PCB PC: " + pcb.pc);
+    System.out.println("TabPag");
+    for (int i = 0; i < pcb.tabPag.length; i++) {
+        for (int j = 0; j < GM.tamPag; j++) {
+            int ef = GM.tradutor((i * GM.tamPag) + j, pcb.tabPag);
+            if (ef >= 0) {
+                System.out.println(gm.memory.pos[ef]);
+            } else {
+                System.out.println("Página " + i + " não está carregada na RAM.");
             }
         }
     }
+}
 
     public void dumpM(int dumpM_start, int dumpM_end) {
         int dumpSize = dumpM_end - dumpM_start;
