@@ -127,10 +127,6 @@ public class CPU implements Runnable {
             }
             if (legal(enderecoFisico) && enderecoFisico >= 0) { // pc valido
                 ir = m.pos[enderecoFisico]; // FETCH
-                if (irpt.get() != Interrupts.noInterrupt) {
-                    ih.handle(irpt);
-                    cpuStop = true; 
-                }
                 if (debug) {
                     System.out.print("                                             regs: ");
                     for (int i = 0; i < 10; i++) {

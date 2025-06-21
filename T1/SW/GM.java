@@ -87,7 +87,7 @@ public class GM {
 		}
 
 		if (numPagina >= tabelaPaginas.length || tabelaPaginas[numPagina] == -1) {
-			System.out.println("Página "+ numPagina + " não existe/não foi alocada na memória RAM");
+			//System.out.println("Página "+ numPagina + " não existe/não foi alocada na memória RAM");
 			CPU.irpt.set(Interrupts.intPageFault);
 			return -2;
 		}
