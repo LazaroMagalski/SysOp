@@ -118,7 +118,7 @@ public class Sistema {
 	AtomicBoolean wantsRead;
 
 	public static void main(String args[]) {
-		Sistema s = new Sistema(1024);
+		Sistema s = new Sistema(11);
 		s.hw.cpu.updateMMU(s.so.gp.nopPCB.tabPag);
 		Thread th = new Thread(s.hw.cpu);
 		s.hw.cpu.setDebug(false);
