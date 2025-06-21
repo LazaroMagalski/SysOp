@@ -19,43 +19,41 @@ public class Scheduler {
         q = ps;
     }
 
-public void schedule(PCB nopPCB) {
-    PCB currPCB = null;
-    for (PCB pcb : q) {
-        if (pcb.state == State.RUNNING) {
-            currPCB = pcb;
-            break;
+    public void schedule(PCB nopPCB) {
+        // Save current running process
+        PCB currPCB = null;
+        for (PCB pcb : q) {
+            if (pcb.state == State.RUNNING) {
+                currPCB = pcb;
+                break;
+            }
         }
-    }
-    if (currPCB != null) {
-        
-        System.arraycopy(hw.cpu.reg, 0, currPCB.regs, 0, hw.cpu.reg.length);
-        currPCB.pc = hw.cpu.pc;
-        currPCB.state = State.READY; 
-    }
+        if (currPCB != null) {
+            System.arraycopy(hw.cpu.reg, 0, currPCB.regs, 0, hw.cpu.reg.length);
+            currPCB.pc = hw.cpu.pc;
+            currPCB.state = State.READY;
+        }
 
-    PCB chosenPCB = null;
-    for (int i = 0; i < q.size(); i++) {
-        chosenPCB = q.poll();
-        if (chosenPCB.state == State.READY) {
-            break;
+        // Select next ready process
+        PCB chosenPCB = null;
+        for (int i = 0; i < q.size(); i++) {
+            chosenPCB = q.poll();
+            if (chosenPCB.state == State.READY) {
+                break;
+            }
+            q.add(chosenPCB);
         }
+        if (chosenPCB == null) {
+            chosenPCB = nopPCB;
+        }
+
+        // Restore context and set as running
+        System.arraycopy(chosenPCB.regs, 0, hw.cpu.reg, 0, hw.cpu.reg.length);
+        hw.cpu.pc = chosenPCB.pc;
+        hw.cpu.setContext(chosenPCB.pc);
+        hw.cpu.updateMMU(chosenPCB.tabPag);
+        chosenPCB.state = State.RUNNING; // Always set to RUNNING
         q.add(chosenPCB);
+        hw.cpu.procId.set(chosenPCB.id);
     }
-    if (chosenPCB == null) {
-        chosenPCB = nopPCB;
-    }
-    System.arraycopy(chosenPCB.regs, 0, hw.cpu.reg, 0, hw.cpu.reg.length);
-    hw.cpu.pc = chosenPCB.pc;
-    hw.cpu.setContext(chosenPCB.pc);
-    hw.cpu.updateMMU(chosenPCB.tabPag);
-
-    int ef = GM.tradutor(chosenPCB.pc, chosenPCB.tabPag);
-    if (ef >= 0 && hw.mem.pos[GM.tradutor(chosenPCB.pc, chosenPCB.tabPag)].opc == Opcode.STOP
-            || hw.cpu.irpt.get() != Interrupts.noInterrupt) {
-        chosenPCB.state = State.RUNNING;
-    }
-    q.add(chosenPCB);
-    hw.cpu.procId.set(chosenPCB.id);
-}
 }
