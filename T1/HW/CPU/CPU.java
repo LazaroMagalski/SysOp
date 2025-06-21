@@ -369,11 +369,10 @@ public class CPU implements Runnable {
                         irpt.set(Interrupts.intInstrucaoInvalida);
                         break;
                 }
-
-                if (irpt.get() != Interrupts.noInterrupt) { // existe interrupção
-                    ih.handle(irpt, false); // desvia para rotina de tratamento - esta rotina é do SO
-                    cpuStop = true; // nesta versao, para a CPU
-                }
+            }
+            if (irpt.get() != Interrupts.noInterrupt) { // existe interrupção
+                ih.handle(irpt, false); // desvia para rotina de tratamento - esta rotina é do SO
+                cpuStop = true; // nesta versao, para a CPU
             }
         } // FIM DO CICLO DE UMA INSTRUÇÃO
     }
