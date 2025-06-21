@@ -3,10 +3,13 @@ package HW.CPU;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import SW.GM;
+import SW.GP.PCB;
 import SW.GP.State;
 import SW.InterruptHandling;
 import SW.SysCallHandling;
 import SW.Utilities;
+
+import java.util.Formatter.BigDecimalLayoutForm;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -122,10 +125,12 @@ public class CPU implements Runnable {
             // FASE DE FETCH
             int enderecoFisico = GM.tradutor(pc, tabPag);
 
-            if (enderecoFisico == -2) {
-
+            if (irpt.get() != Interrupts.noInterrupt) { // existe interrupção
+                ih.handle(irpt, true); // desvia para rotina de tratamento - esta rotina é do SO
+                cpuStop = true; // nesta versao, para a CPU
             }
-             else if (legal(enderecoFisico) && enderecoFisico >= 0) { // pc valido
+
+            if (legal(enderecoFisico) && enderecoFisico >= 0) { // pc valido
                 ir = m.pos[enderecoFisico]; // FETCH
                 if (debug) {
                     System.out.print("                                             regs: ");
@@ -156,7 +161,7 @@ public class CPU implements Runnable {
                             if (ef >= 0) {
                                 reg[ir.ra] = m.pos[ef].p;
                                 pc++;
-                            } 
+                            }
                         }
                         break;
                     case LDX: // RD <- [RS]
@@ -165,7 +170,7 @@ public class CPU implements Runnable {
                             if (ef >= 0) {
                                 reg[ir.ra] = m.pos[ef].p;
                                 pc++;
-                            } 
+                            }
                         }
                         break;
                     case STD: // [A] ← Rs
@@ -179,7 +184,7 @@ public class CPU implements Runnable {
                                     System.out.print("                                  ");
                                     u.dump(ir.p, ir.p + 1);
                                 }
-                            } 
+                            }
                         }
                         break;
                     case STX: // [Rd] ←Rs
@@ -189,7 +194,7 @@ public class CPU implements Runnable {
                                 m.pos[ef].opc = Opcode.DATA;
                                 m.pos[ef].p = reg[ir.rb];
                                 pc++;
-                            } 
+                            }
                         }
                         break;
                     case MOVE: // RD <- RS
@@ -364,12 +369,11 @@ public class CPU implements Runnable {
                         irpt.set(Interrupts.intInstrucaoInvalida);
                         break;
                 }
-            }
-            // --------------------------------------------------------------------------------------------------
-            // VERIFICA INTERRUPÇÃO !!! - TERCEIRA FASE DO CICLO DE INSTRUÇÕES
-            if (irpt.get() != Interrupts.noInterrupt) { // existe interrupção
-                ih.handle(irpt); // desvia para rotina de tratamento - esta rotina é do SO
-                cpuStop = true; // nesta versao, para a CPU
+
+                if (irpt.get() != Interrupts.noInterrupt) { // existe interrupção
+                    ih.handle(irpt, false); // desvia para rotina de tratamento - esta rotina é do SO
+                    cpuStop = true; // nesta versao, para a CPU
+                }
             }
         } // FIM DO CICLO DE UMA INSTRUÇÃO
     }
