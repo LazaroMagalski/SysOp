@@ -16,7 +16,7 @@ public class InterruptHandling {
     }
 
     public void handle(AtomicReference<Interrupts> irpt) {
-        // apenas avisa - todas interrupcoes neste momento finalizam o programa
+
         if (irpt.get() == Interrupts.intTimer) {
             so.gp.scheduler.schedule(so.gp.nopPCB);
         } else if (irpt.get() == Interrupts.intIOCompleta) {
@@ -52,15 +52,15 @@ public class InterruptHandling {
             int numPagina = enderecoLogico / tamPag;
 
             int frameLivre = -1;
-            boolean temFrameLivre = false;
+
+            // 1. Tenta pegar um frame livre
             if (!so.gm.freeFrames.isEmpty()) {
                 frameLivre = so.gm.freeFrames.pop();
-                temFrameLivre = true;
-            }
-
-            int paginaSubstituida = -1;
-            if (!temFrameLivre) {
-                // Substitui a página atualmente carregada (exceto a que está sendo pedida)
+                System.out.println("Frame livre encontrado: " + frameLivre);
+            } else {
+                // 2. Se não houver frame livre, substitui uma página já carregada (exceto a
+                // requisitada)
+                int paginaSubstituida = -1;
                 for (int i = 0; i < currPCB.tabPag.length; i++) {
                     if (currPCB.tabPag[i] != -1 && i != numPagina) {
                         paginaSubstituida = i;
@@ -72,9 +72,14 @@ public class InterruptHandling {
                     so.gm.salvaPaginaNoDisco(frameLivre, so.gp.disco);
                     currPCB.tabPag[paginaSubstituida] = -1;
                     System.out.println("Substituindo página " + paginaSubstituida + " do frame " + frameLivre);
+                } else {
+                    System.out.println("ERRO: Não há frame livre nem página para substituir!");
+                    irpt.set(Interrupts.noInterrupt);
+                    return;
                 }
             }
 
+            // Carrega a página requisitada do disco para o frame livre
             so.gm.carregaPaginaDoDisco(numPagina, frameLivre, so.gp.disco);
             currPCB.tabPag[numPagina] = frameLivre;
 

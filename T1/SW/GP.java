@@ -47,7 +47,7 @@ public class GP {
 
     public GP(HW hw, GM gm, Disco disco) {
         this.cpu = hw.cpu;
-        this.gm = new GM(hw.mem, 10, cpu);
+        this.gm = gm;
         this.pcbList = new LinkedList<>();
         this.procExec = 0;
         this.scheduler = new Scheduler(this, hw, pcbList);

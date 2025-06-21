@@ -125,7 +125,7 @@ public class CPU implements Runnable {
             if (enderecoFisico == -2) {
 
             }
-            if (legal(enderecoFisico) && enderecoFisico >= 0) { // pc valido
+             else if (legal(enderecoFisico) && enderecoFisico >= 0) { // pc valido
                 ir = m.pos[enderecoFisico]; // FETCH
                 if (irpt.get() != Interrupts.noInterrupt) {
                     ih.handle(irpt);

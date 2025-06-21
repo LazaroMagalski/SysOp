@@ -23,10 +23,11 @@ public class GM {
 		tamPag = _tamPag;
 		this.frames = tamMem / tamPag;
 		freeFrames = new Stack<>();
-		for (int i = frames-1; i >= 0; i -= 2) {
+		for (int i = frames-1; i >= 0; i --) {
 			freeFrames.push(i);
 		}
 		this.cpu = cpu;
+		System.out.println(freeFrames.size() + " frames livres disponíveis.");
 	}
 
 	public int[] aloca(int nroPalavras) {
@@ -48,6 +49,7 @@ public class GM {
 
 		if (paginasAlocadas == paginasNecessarias) {
 			// todas as paginas foram alocadas
+			System.out.println(freeFrames.size() + " frames livres disponíveis.");
 			return tabelaPaginas;
 		} else {
 			// libera os espaços que já foram alocados
@@ -61,22 +63,28 @@ public class GM {
 	public void desaloca(int[] tabelaPaginas) {
 		// libera os frames alocados
 		for (int i = 0; i < tabelaPaginas.length; i++) {
-			freeFrames.push(tabelaPaginas[i]);
+			if (tabelaPaginas[i] != -1) {
+				// Se a página não foi alocada, pula para a próxima
+				freeFrames.push(tabelaPaginas[i]);
+				tabelaPaginas[i] = -1; // Marca como não alocada
+			}
 		}
 	}
 
 	public void carregarPrograma (Word[] programa, int[] tabelaPaginas) {
-		// Carrega o programa na memória
-		for (int i = 0; i < programa.length;i++) {
-
-			int posicaoTransladada = tradutor(i, tabelaPaginas);
-			memory.pos[posicaoTransladada].opc = programa[i].opc;
-			memory.pos[posicaoTransladada].p = programa[i].p;
-			memory.pos[posicaoTransladada].ra = programa[i].ra;
-			memory.pos[posicaoTransladada].rb = programa[i].rb;
-
-		}
-	}
+    for (int i = 0; i < programa.length; i++) {
+        int posicaoTransladada = tradutor(i, tabelaPaginas);
+        if (posicaoTransladada >= 0) {
+            memory.pos[posicaoTransladada].opc = programa[i].opc;
+            memory.pos[posicaoTransladada].p = programa[i].p;
+            memory.pos[posicaoTransladada].ra = programa[i].ra;
+            memory.pos[posicaoTransladada].rb = programa[i].rb;
+        } else {
+            // Se não está na RAM, não tenta carregar, pode dar break ou continue
+            System.out.println("Não foi possível carregar a instrução " + i + " porque a página não está na RAM.");
+        }
+    }
+}
 
 	public static int tradutor(int enderecoLogico, int[] tabelaPaginas){
 		int numPagina = enderecoLogico / tamPag; // Pega o número da página virtual
