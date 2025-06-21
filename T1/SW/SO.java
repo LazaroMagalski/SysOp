@@ -16,7 +16,7 @@ public class SO {
 		sc = new SysCallHandling(hw); // chamadas de sistema
 		hw.cpu.setAddressOfHandlers(ih, sc);
 		utils = new Utilities(hw);
-		gm = new GM(hw.mem, 1024, hw.cpu);
+		gm = new GM(hw.mem, 128, hw.cpu);
 		gp = new GP(hw, gm, hw.disco);
 	}
 
