@@ -4,6 +4,7 @@ import HW.CPU.Interrupts;
 import HW.HW;
 import SW.GP.PCB;
 import SW.GP.State;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class InterruptHandling {
@@ -28,8 +29,7 @@ public class InterruptHandling {
             so.gp.scheduler.q.add(currPCB);
             currPCB.state = State.READY;
             currPCB.pc++;
-        }
-        else if (irpt.get() == Interrupts.intPageFault) {
+        } else if (irpt.get() == Interrupts.intPageFault) {
             System.out.println("Tratando page fault");
             int procId = hw.cpu.procId.get();
             PCB currPCB = null;
@@ -45,7 +45,7 @@ public class InterruptHandling {
                 return;
             }
 
-            int enderecoLogico = currPCB.pc;
+            int enderecoLogico = SW.GM.lastFaultAddr;
             int tamPag = SW.GM.tamPag;
             int numPagina = enderecoLogico / tamPag;
 
@@ -56,8 +56,6 @@ public class InterruptHandling {
                 frameLivre = so.gm.freeFrames.pop();
                 System.out.println("Frame livre encontrado: " + frameLivre);
             } else {
-                // 2. Se não houver frame livre, substitui uma página já carregada (exceto a
-                // requisitada)
                 int paginaSubstituida = -1;
                 for (int i = 0; i < currPCB.tabPag.length; i++) {
                     if (currPCB.tabPag[i] != -1 && i != numPagina) {
@@ -66,8 +64,9 @@ public class InterruptHandling {
                         break;
                     }
                 }
-                if (paginaSubstituida != -1) {
-                    so.gm.salvaPaginaNoDisco(frameLivre, so.gp.disco);
+                if (paginaSubstituida != -1 && frameLivre != -1) {
+                    // Salva a página substituída no disco usando a chave correta
+                    so.gm.salvaPaginaNoDisco(currPCB.id * 1000 + paginaSubstituida, so.gp.disco);
                     currPCB.tabPag[paginaSubstituida] = -1;
                     System.out.println("Substituindo página " + paginaSubstituida + " do frame " + frameLivre);
                 } else {
@@ -77,9 +76,13 @@ public class InterruptHandling {
                 }
             }
 
-            // Carrega a página requisitada do disco para o frame livre
-            so.gm.carregaPaginaDoDisco(numPagina, frameLivre, so.gp.disco);
+            // Atualiza a tabela de páginas para apontar o novo frame
             currPCB.tabPag[numPagina] = frameLivre;
+
+            // Carrega a página requisitada do disco para o frame livre
+            so.gm.carregaPaginaDoDisco(currPCB.id * 1000 + numPagina, frameLivre, so.gp.disco);
+
+            System.out.println("TabPag após page fault: " + Arrays.toString(currPCB.tabPag));
 
             System.out.println("Page fault tratado: página " + numPagina + " carregada no frame " + frameLivre);
         } else if (irpt.get() == Interrupts.intTimer && !pagefault) {

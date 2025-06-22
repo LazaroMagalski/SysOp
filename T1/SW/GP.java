@@ -70,7 +70,7 @@ public class GP {
         int numPaginas = (int) Math.ceil((double) program.image.length / tamPag);
 
         // Aloca só UMA página na RAM para o processo
-        int[] alocacao = gm.aloca(tamPag);
+        int[] alocacao = gm.aloca(1);
         if (program.image.length > gm.tamMem)
             return false;
         if (alocacao == null) {
@@ -105,7 +105,7 @@ public class GP {
                 else
                     pagina[i] = new Word(Opcode.___, -1, -1, -1);
             }
-            disco.salvarPagina(pag, pagina);
+            disco.salvarPagina(novoPCB.id * 1000 + pag, pagina);
         }
 
         pcbList.add(novoPCB);
@@ -130,7 +130,7 @@ public class GP {
             return false;
         }
         gm.desaloca(pcb.tabPag);
-        pcbList.remove(id);
+        pcbList.remove(pcb);
         return true;
     }
 

@@ -6,6 +6,7 @@ import HW.Memory.Disco;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import java.util.Stack;
+
 // -------------------------------------------------------------------------------------------------------
 // --------------------- M E M O R I A - definicoes de palavra de memoria,
 // memória ----------------------
@@ -23,7 +24,7 @@ public class GM {
 		tamPag = _tamPag;
 		this.frames = tamMem / tamPag;
 		freeFrames = new Stack<>();
-		for (int i = frames-1; i >= 0; i --) {
+		for (int i = frames - 1; i >= 0; i--) {
 			freeFrames.push(i);
 		}
 		this.cpu = cpu;
@@ -35,13 +36,14 @@ public class GM {
 		// cada posição i do vetor de saída “tabelaPaginas” informa em que frame a
 		// página i deve ser hospedada
 		int paginasNecessarias = (int) Math.ceil((double) nroPalavras / tamPag); // A função Math.ceil(x) retorna o
-													// menor número inteiro maior ou
-																				// igual a "x"
+		// menor número inteiro maior ou
+		// igual a "x"
 		int paginasAlocadas = 0;
 		int[] tabelaPaginas = new int[paginasNecessarias];
 		for (int i = 0; i < paginasNecessarias; i++) {
-			//System.out.println(paginasAlocadas + " " + paginasNecessarias + " " + tabelaPaginas[frame]);
-			
+			// System.out.println(paginasAlocadas + " " + paginasNecessarias + " " +
+			// tabelaPaginas[frame]);
+
 			tabelaPaginas[paginasAlocadas] = freeFrames.pop();
 
 			paginasAlocadas++;
@@ -54,7 +56,7 @@ public class GM {
 		} else {
 			// libera os espaços que já foram alocados
 			// for (int i = 0; i < paginasAlocadas; i++) {
-			// 	tabelaPaginas[i] = -1;
+			// tabelaPaginas[i] = -1;
 			// }
 			return null;
 		}
@@ -71,42 +73,48 @@ public class GM {
 		}
 	}
 
-	public void carregarPrograma (Word[] programa, int[] tabelaPaginas) {
-    for (int i = 0; i < programa.length; i++) {
-        int posicaoTransladada = tradutor(i, tabelaPaginas);
-        if (posicaoTransladada >= 0) {
-            memory.pos[posicaoTransladada].opc = programa[i].opc;
-            memory.pos[posicaoTransladada].p = programa[i].p;
-            memory.pos[posicaoTransladada].ra = programa[i].ra;
-            memory.pos[posicaoTransladada].rb = programa[i].rb;
-        } else {
-            // Se não está na RAM, não tenta carregar, pode dar break ou continue
-            System.out.println("Não foi possível carregar a instrução " + i + " porque a página não está na RAM.");
-        }
-    }
-}
+	public void carregarPrograma(Word[] programa, int[] tabelaPaginas) {
+		for (int i = 0; i < programa.length; i++) {
+			int posicaoTransladada = tradutor(i, tabelaPaginas);
+			if (posicaoTransladada >= 0) {
+				memory.pos[posicaoTransladada].opc = programa[i].opc;
+				memory.pos[posicaoTransladada].p = programa[i].p;
+				memory.pos[posicaoTransladada].ra = programa[i].ra;
+				memory.pos[posicaoTransladada].rb = programa[i].rb;
+			} else {
+				// Se não está na RAM, não tenta carregar, pode dar break ou continue
+				System.out.println("Não foi possível carregar a instrução " + i + " porque a página não está na RAM.");
+			}
+		}
+	}
 
-	public static int tradutor(int enderecoLogico, int[] tabelaPaginas){
-		int numPagina = enderecoLogico / tamPag; // Pega o número da página virtual
-		int offset = enderecoLogico % tamPag; // Descobre o deslocamento dentro da página
+	public static int lastFaultAddr = -1;
 
-		if (enderecoLogico < 0 || tabelaPaginas == null) {	// Verifica a validade dos argumentos fornecidos
+	public static int tradutor(int enderecoLogico, int[] tabelaPaginas) {
+		int numPagina = enderecoLogico / tamPag;
+		int offset = enderecoLogico % tamPag;
+
+		if (enderecoLogico < 0 || tabelaPaginas == null) {
 			System.out.println("Endereço ou tabela inválidos");
 		}
 
 		if (numPagina >= tabelaPaginas.length || tabelaPaginas[numPagina] == -1) {
-			//System.out.println("Página "+ numPagina + " não existe/não foi alocada na memória RAM");
 			CPU.irpt.set(Interrupts.intPageFault);
+			lastFaultAddr = enderecoLogico; 
 			return -2;
 		}
 
-		int numFrame = tabelaPaginas[numPagina]; // Salva o frame físico correspondente
-		int enderecoFisico = (numFrame * tamPag) + offset; // Descobre o endereco físico
+		int numFrame = tabelaPaginas[numPagina];
+		int enderecoFisico = (numFrame * tamPag) + offset;
 
 		return enderecoFisico;
 	}
 
 	public void salvaPaginaNoDisco(int numFrame, Disco disco) {
+		if (numFrame < 0 || numFrame * tamPag + tamPag > memory.pos.length) {
+			System.out.println("Tentativa de salvar frame inválido no disco: " + numFrame);
+			return;
+		}
 		Word[] pagina = new Word[tamPag];
 		for (int i = 0; i < tamPag; i++) {
 			pagina[i] = memory.pos[numFrame * tamPag + i];
