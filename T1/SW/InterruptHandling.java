@@ -18,6 +18,9 @@ public class InterruptHandling {
 
     public void handle(AtomicReference<Interrupts> irpt, boolean pagefault) {
 
+        if (irpt.get() == Interrupts.intTimer) {
+            so.gp.scheduler.schedule(so.gp.nopPCB);
+        }
         if (irpt.get() == Interrupts.intIOCompleta) {
             System.out.println("received complete io");
             PCB currPCB;
@@ -28,8 +31,7 @@ public class InterruptHandling {
             }
             so.gp.scheduler.q.add(currPCB);
             currPCB.state = State.READY;
-            currPCB.pc++;
-            irpt.set(Interrupts.noInterrupt);
+            currPCB.pc++;         
         } else if (irpt.get() == Interrupts.intPageFault) {
             System.out.println("Tratando page fault");
             int procId = hw.cpu.procId.get();
