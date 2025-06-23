@@ -46,6 +46,9 @@ public class Sistema {
 					if (name.compareTo("teste") == 0) {
 						so.gp.criaProcesso(progs.retrieveProg("sum"));
 						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
+						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
+						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
+						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
 						break;
 					} else if (name.compareTo("teste2") == 0) {
 						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
