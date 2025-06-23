@@ -29,6 +29,7 @@ public class InterruptHandling {
             so.gp.scheduler.q.add(currPCB);
             currPCB.state = State.READY;
             currPCB.pc++;
+            irpt.set(Interrupts.noInterrupt);
         } else if (irpt.get() == Interrupts.intPageFault) {
             System.out.println("Tratando page fault");
             int procId = hw.cpu.procId.get();
