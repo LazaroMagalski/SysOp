@@ -7,10 +7,15 @@ public class Disco {
     private Map<Integer, Word[]> paginas = new HashMap<>();
 
     public void salvarPagina(int numPagina, Word[] pagina) {
-        paginas.put(numPagina, pagina.clone());
+        Word[] copia = new Word[pagina.length];
+        for (int i = 0; i < pagina.length; i++) {
+            copia[i] = new Word(pagina[i]); 
+        }
+        paginas.put(numPagina, copia);
+
     }
 
-    public Word[] recuperaPagina (int numPagina) {
+    public Word[] recuperaPagina(int numPagina) {
         return paginas.get(numPagina);
     }
 
