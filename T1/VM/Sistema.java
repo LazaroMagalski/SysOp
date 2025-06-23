@@ -1,7 +1,10 @@
 package VM;
 
+import HW.CPU.Opcode;
 import HW.Console;
 import HW.HW;
+import HW.Memory.Word;
+import SW.GM;
 import SW.SO;
 import SW.Timer;
 import java.util.*;
@@ -9,22 +12,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Sistema {
-    public HW hw;
+	public HW hw;
 	public SO so;
 	public Programs progs;
 
 	public Sistema(int tamMem) {
-		hw = new HW(tamMem);           // memoria do HW tem tamMem palavras
+		hw = new HW(tamMem); // memoria do HW tem tamMem palavras
 		so = new SO(hw);
 		hw.cpu.setUtilities(so.utils); // permite cpu fazer dump de memoria ao avancar
 		progs = new Programs();
-        wantsRead = new AtomicBoolean(false);
-        result = new AtomicInteger(-1);
+		wantsRead = new AtomicBoolean(false);
+		result = new AtomicInteger(-1);
 	}
-	public void menu(){
+
+	public void menu() {
 		Scanner sc;
-		while(true){
-			while (hw.cpu.procId.get() != 0);
+		while (true) {
+			while (hw.cpu.procId.get() != 0)
+				;
 			sc = new Scanner(System.in);
 			System.out.println("Digite um comando:");
 			String command;
@@ -47,14 +52,14 @@ public class Sistema {
 						so.gp.criaProcesso(progs.retrieveProg("fatorialV2"));
 						so.gp.desalocaProcesso(0);
 						so.gp.criaProcesso(progs.retrieveProg("fibonacci10v2"));
-					} else{
+					} else {
 						so.gp.criaProcesso(progs.retrieveProg(name));
-					} 
+					}
 					break;
 				case "rm":
 					System.out.println("Digite o id do programa: ");
 					int rm_id = sc.nextInt();
-					if(so.gp.desalocaProcesso(rm_id) == true)
+					if (so.gp.desalocaProcesso(rm_id) == true)
 						System.out.println("Processo Removido");
 					break;
 				case "ps":
@@ -99,9 +104,30 @@ public class Sistema {
 					System.exit(0);
 					break;
 				case "IN":
-					while (!wantsRead.get());
+					wantsRead.set(true);
 					result.set(sc.nextInt());
 					wantsRead.set(false);
+
+					int[] tabPag = null;
+					int procId = hw.cpu.procId.get();
+					
+					for (int i = 0; i < so.gp.pcbList.size(); i++) {
+						if (procId == so.gp.pcbList.get(i).id) {
+							tabPag = so.gp.pcbList.get(i).tabPag;
+							break;
+						}
+					}
+
+					int dataLogAddr = 0;
+					int dataPhys = GM.tradutor(dataLogAddr, tabPag);
+					so.gm.memory.pos[dataPhys] = new Word(Opcode.STOP, -1, -1, -1);
+
+					int phys = GM.tradutor(hw.cpu.reg[5], tabPag);
+					so.gm.memory.pos[phys].opc = Opcode.DATA;
+					so.gm.memory.pos[phys].p = result.get();
+
+					so.gp.swapOutProcess(procId);
+
 					break;
 				default:
 					break;
@@ -109,11 +135,11 @@ public class Sistema {
 		}
 	}
 
-	public void run() {//remover
+	public void run() {// remover
 
 		so.utils.loadAndExec(progs.retrieveProgram("sum"));
 	}
-	
+
 	AtomicInteger result;
 	AtomicBoolean wantsRead;
 
@@ -130,6 +156,6 @@ public class Sistema {
 		cth.start();
 		tth.start();
 		s.menu();
-		//s.run();
+		// s.run();
 	}
 }

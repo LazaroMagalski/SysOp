@@ -213,4 +213,33 @@ public class GP {
     public void setPcbId(int pcbId) {
         this.pcbId = pcbId;
     }
+
+    public boolean swapOutProcess(int id) {
+    PCB pcb = null;
+    for (int i = 0; i < pcbList.size(); i++) {
+        if (id == pcbList.get(i).id) {
+            pcb = pcbList.get(i);
+            break;
+        }
+    }
+    if (pcb == null) {
+        System.out.println("Processo inexistente");
+        return false;
+    }
+    // Salva todas as páginas do processo no disco
+    for (int pag = 0; pag < pcb.tabPag.length; pag++) {
+        int frame = pcb.tabPag[pag];
+        if (frame != -1) {
+            Word[] pagina = new Word[GM.tamPag];
+            for (int i = 0; i < GM.tamPag; i++) {
+                pagina[i] = gm.memory.pos[frame * GM.tamPag + i];
+            }
+            disco.salvarPagina(pcb.id * 1000 + pag, pagina);
+        }
+    }
+    gm.desaloca(pcb.tabPag);
+    pcbList.remove(pcb);
+    pcbListRemovidos.add(pcb);
+    return true;
+}
 }

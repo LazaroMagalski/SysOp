@@ -339,7 +339,7 @@ public class CPU implements Runnable {
                         break;
 
                     case IN:
-                        System.out.println("IN " + procId);
+                        System.out.println("IN " + procId.get());
                         Request rqi = new Request();
                         rqi.request = RequestType.IN;
                         rqi.num = ir.ra;
