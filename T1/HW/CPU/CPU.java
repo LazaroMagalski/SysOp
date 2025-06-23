@@ -3,13 +3,10 @@ package HW.CPU;
 import HW.Memory.Memory;
 import HW.Memory.Word;
 import SW.GM;
-import SW.GP.PCB;
 import SW.GP.State;
 import SW.InterruptHandling;
 import SW.SysCallHandling;
 import SW.Utilities;
-
-import java.util.Formatter.BigDecimalLayoutForm;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -321,9 +318,16 @@ public class CPU implements Runnable {
 
                     case STOP: // por enquanto, para execucao
                         sysCall.stop(debug);
-                        cpuStop = true;
+                        // Desaloca o processo automaticamente ao terminar
+                        if (ih != null && ih.so != null && ih.so.gp != null) {
+                            ih.so.gp.desalocaProcesso(procId.get());
+                            // Troca para o processo NOP após desalocar
+                            procId.set(ih.so.gp.nopPCB.id);
+                            updateMMU(ih.so.gp.nopPCB.tabPag);
+                            setContext(0); // Reinicia o PC para o NOP
+                        }
+                        cpuStop = false; // Permite continuar execução com NOP
                         break;
-
                     case NOP:
                         // System.out.println("nop");
                         // for (int i = 0; i < ih.so.gp.pcbList.size(); i++) {

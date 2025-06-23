@@ -44,6 +44,7 @@ public class GP {
     public Memory memory;
     public Scheduler scheduler;
     public Disco disco;
+    public LinkedList<PCB> pcbListRemovidos = new LinkedList<>();
 
     public GP(HW hw, GM gm, Disco disco) {
         this.cpu = hw.cpu;
@@ -66,54 +67,54 @@ public class GP {
     public boolean criaProcesso(Program program) {
 
         try {
-        int tamPag = GM.tamPag;
-        int numPaginas = (int) Math.ceil((double) program.image.length / tamPag);
+            int tamPag = GM.tamPag;
+            int numPaginas = (int) Math.ceil((double) program.image.length / tamPag);
 
-        // Aloca só UMA página na RAM para o processo
-        int[] alocacao = gm.aloca(1);
-        if (program.image.length > gm.tamMem)
-            return false;
-        if (alocacao == null) {
-            System.out.println("Erro: Memória insuficiente para alocar o programa");
-            return false;
-        }
-        PCB novoPCB = new PCB();
-        novoPCB.tabPag = new int[numPaginas];
-        // Inicializa todas as páginas como -1 (não carregadas)
-        for (int i = 0; i < numPaginas; i++) {
-            novoPCB.tabPag[i] = -1;
-        }
-        // Carrega a primeira página na RAM
-        novoPCB.tabPag[0] = alocacao[0];
-        Word[] primeiraPagina = new Word[tamPag];
-        for (int i = 0; i < tamPag; i++) {
-            int idx = i;
-            if (idx < program.image.length)
-                primeiraPagina[i] = program.image[idx];
-            else
-                primeiraPagina[i] = new Word(Opcode.___, -1, -1, -1);
-        }
-        gm.carregarPrograma(primeiraPagina, new int[]{alocacao[0]});
-
-        // Salva as demais páginas no disco
-        for (int pag = 1; pag < numPaginas; pag++) {
-            Word[] pagina = new Word[tamPag];
-            for (int i = 0; i < tamPag; i++) {
-                int idx = pag * tamPag + i;
-                if (idx < program.image.length)
-                    pagina[i] = program.image[idx];
-                else
-                    pagina[i] = new Word(Opcode.___, -1, -1, -1);
+            // Aloca só UMA página na RAM para o processo
+            int[] alocacao = gm.aloca(1);
+            if (program.image.length > gm.tamMem)
+                return false;
+            if (alocacao == null) {
+                System.out.println("Erro: Memória insuficiente para alocar o programa");
+                return false;
             }
-            disco.salvarPagina(novoPCB.id * 1000 + pag, pagina);
-        }
+            PCB novoPCB = new PCB();
+            novoPCB.tabPag = new int[numPaginas];
+            // Inicializa todas as páginas como -1 (não carregadas)
+            for (int i = 0; i < numPaginas; i++) {
+                novoPCB.tabPag[i] = -1;
+            }
+            // Carrega a primeira página na RAM
+            novoPCB.tabPag[0] = alocacao[0];
+            Word[] primeiraPagina = new Word[tamPag];
+            for (int i = 0; i < tamPag; i++) {
+                int idx = i;
+                if (idx < program.image.length)
+                    primeiraPagina[i] = program.image[idx];
+                else
+                    primeiraPagina[i] = new Word(Opcode.___, -1, -1, -1);
+            }
+            gm.carregarPrograma(primeiraPagina, new int[] { alocacao[0] });
 
-        pcbList.add(novoPCB);
-        System.out.println(pcbList.size());
-    } catch (NullPointerException e) {
-        System.out.println("Nome de programa inválido");
-    }
-    return true;
+            // Salva as demais páginas no disco
+            for (int pag = 1; pag < numPaginas; pag++) {
+                Word[] pagina = new Word[tamPag];
+                for (int i = 0; i < tamPag; i++) {
+                    int idx = pag * tamPag + i;
+                    if (idx < program.image.length)
+                        pagina[i] = program.image[idx];
+                    else
+                        pagina[i] = new Word(Opcode.___, -1, -1, -1);
+                }
+                disco.salvarPagina(novoPCB.id * 1000 + pag, pagina);
+            }
+
+            pcbList.add(novoPCB);
+            System.out.println(pcbList.size());
+        } catch (NullPointerException e) {
+            System.out.println("Nome de programa inválido");
+        }
+        return true;
     }
 
     public boolean desalocaProcesso(int id) {
@@ -129,8 +130,25 @@ public class GP {
             System.out.println("Processo inexistente");
             return false;
         }
+
+        // Salva todas as páginas do processo no disco antes de desalocar
+        for (int pag = 0; pag < pcb.tabPag.length; pag++) {
+            int frame = pcb.tabPag[pag];
+            if (frame != -1) {
+                // Copia a página da memória RAM para um array
+                Word[] pagina = new Word[GM.tamPag];
+                for (int i = 0; i < GM.tamPag; i++) {
+                    pagina[i] = gm.memory.pos[frame * GM.tamPag + i];
+                }
+                // Salva no disco usando a chave lógica id*1000+pag
+                disco.salvarPagina(pcb.id * 1000 + pag, pagina);
+            }
+        }
+
         gm.desaloca(pcb.tabPag);
+
         pcbList.remove(pcb);
+        pcbListRemovidos.add(pcb);
         return true;
     }
 
@@ -139,33 +157,51 @@ public class GP {
     }
 
     public void dump(int id) {
-    System.out.println(pcbList.size());
-    PCB pcb = null;
-    for (int i = 0; i < pcbList.size(); i++) {
-        if (id == pcbList.get(i).id) {
-            pcb = pcbList.get(i);
-            break;
+        System.out.println(pcbList.size());
+        PCB pcb = null;
+        for (int i = 0; i < pcbList.size(); i++) {
+            if (id == pcbList.get(i).id) {
+                pcb = pcbList.get(i);
+                break;
+            }
         }
-    }
-    if (pcb == null) {
-        System.out.println("Processo invalido");
-        return;
-    }
-    System.out.println();
-    System.out.println("PCB ID: " + pcb.id);
-    System.out.println("PCB PC: " + pcb.pc);
-    System.out.println("TabPag");
-    for (int i = 0; i < pcb.tabPag.length; i++) {
-        for (int j = 0; j < GM.tamPag; j++) {
-            int ef = GM.tradutor((i * GM.tamPag) + j, pcb.tabPag);
-            if (ef >= 0) {
-                System.out.println(gm.memory.pos[ef]);
+        // Se não achou, procura nos removidos
+        if (pcb == null) {
+            for (int i = 0; i < pcbListRemovidos.size(); i++) {
+                if (id == pcbListRemovidos.get(i).id) {
+                    pcb = pcbListRemovidos.get(i);
+                    break;
+                }
+            }
+        }
+        if (pcb == null) {
+            System.out.println("Processo invalido");
+            return;
+        }
+        System.out.println();
+        System.out.println("PCB ID: " + pcb.id);
+        System.out.println("PCB PC: " + pcb.pc);
+        System.out.println("TabPag");
+        for (int i = 0; i < pcb.tabPag.length; i++) {
+            // Se a página está carregada na RAM, imprime da RAM
+            if (pcb.tabPag[i] != -1) {
+                for (int j = 0; j < GM.tamPag; j++) {
+                    int ef = pcb.tabPag[i] * GM.tamPag + j;
+                    System.out.println(gm.memory.pos[ef]);
+                }
             } else {
-                System.out.println("Página " + i + " não está carregada na RAM.");
+                // Se não está na RAM, imprime direto do disco (sem tentar acessar a RAM)
+                Word[] pagina = disco.recuperaPagina(pcb.id * 1000 + i);
+                if (pagina != null) {
+                    for (int j = 0; j < pagina.length; j++) {
+                        System.out.println("Página " + i + " (do disco): " + pagina[j]);
+                    }
+                } else {
+                    System.out.println("Página " + i + " não está carregada na RAM nem no disco.");
+                }
             }
         }
     }
-}
 
     public void dumpM(int dumpM_start, int dumpM_end) {
         int dumpSize = dumpM_end - dumpM_start;
