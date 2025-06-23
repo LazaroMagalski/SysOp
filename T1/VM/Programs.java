@@ -60,14 +60,12 @@ public class Programs {
                                         }),
                         new Program("fatorialIN",
                                         new Word[] {
-                                                        // 8: salva resultado em 10
+
                                                         new Word(Opcode.DATA, -1, -1, -1),
-                                                        new Word(Opcode.IN, 5, -1, -1), // 9: lê valor do usuário para
-                                                                                        // posição 11 (apenas registra)
-                                                        new Word(Opcode.STOP, -1, -1, -1), // 10: STOP
+                                                        new Word(Opcode.IN, 5, -1, -1),
+                                                        new Word(Opcode.STOP, -1, -1, -1),
                                                         new Word(Opcode.OUT, 42, -1, -1),
-                                                        new Word(Opcode.DATA, -1, -1, -1) // 11: resultado do fatorial
-                                        // 12: valor lido pelo IN
+                                                        new Word(Opcode.DATA, -1, -1, -1)
 
                                         }),
 

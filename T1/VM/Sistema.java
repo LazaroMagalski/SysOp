@@ -25,7 +25,7 @@ public class Sistema {
 		result = new AtomicInteger(-1);
 	}
 
-	public void menu() {
+	public void menu() throws InterruptedException {
 		Scanner sc;
 		while (true) {
 			while (hw.cpu.procId.get() != 0)
@@ -45,9 +45,13 @@ public class Sistema {
 					String name = sc.nextLine();
 					if (name.compareTo("teste") == 0) {
 						so.gp.criaProcesso(progs.retrieveProg("sum"));
+						Thread.sleep(2000);
 						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
+						Thread.sleep(2000);
 						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
+						Thread.sleep(2000);
 						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
+						Thread.sleep(2000);
 						so.gp.criaProcesso(progs.retrieveProg("fatorial"));
 						break;
 					} else if (name.compareTo("teste2") == 0) {
@@ -146,8 +150,8 @@ public class Sistema {
 	AtomicInteger result;
 	AtomicBoolean wantsRead;
 
-	public static void main(String args[]) {
-		Sistema s = new Sistema(1024);
+	public static void main(String args[]) throws InterruptedException {
+		Sistema s = new Sistema(30);
 		s.hw.cpu.updateMMU(s.so.gp.nopPCB.tabPag);
 		Thread th = new Thread(s.hw.cpu);
 		s.hw.cpu.setDebug(false);

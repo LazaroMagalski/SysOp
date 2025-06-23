@@ -54,7 +54,7 @@ public class InterruptHandling {
 
             int frameLivre = -1;
 
-            // 1. Tenta pegar um frame livre
+            
             if (!so.gm.freeFrames.isEmpty()) {
                 frameLivre = so.gm.freeFrames.pop();
                 System.out.println("Frame livre encontrado: " + frameLivre);
@@ -68,7 +68,7 @@ public class InterruptHandling {
                     }
                 }
                 if (paginaSubstituida != -1 && frameLivre != -1) {
-                    // Salva a página substituída no disco usando a chave correta
+                    
                     so.gm.salvaPaginaNoDisco(currPCB.id * 1000 + paginaSubstituida, so.gp.disco);
                     currPCB.tabPag[paginaSubstituida] = -1;
                     System.out.println("Substituindo página " + paginaSubstituida + " do frame " + frameLivre);
